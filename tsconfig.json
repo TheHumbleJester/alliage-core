@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "baseUrl": "./packages",
+    "rootDir": "./packages",
+    "paths": {
+      "alliage-di/*": [
+        "dependency-injection/src/*"
+      ],
+      "alliage-lifecycle/*": [
+        "lifecycle/src/*"
+      ],
+      "alliage-process-manager/*": [
+        "process-manager/src/*"
+      ],
+      "alliage-config-loader/*": [
+        "configuration-loader/src/*"
+      ]
+    }
+  },
+  "exclude": [],
+}

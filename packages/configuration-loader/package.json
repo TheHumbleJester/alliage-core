@@ -1,0 +1,30 @@
+{
+  "name": "alliage-config-loader",
+  "version": "0.0.1",
+  "description": "Configuration loader module for Alliage",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheHumbleJester/alliage-core.git"
+  },
+  "author": "the.humble.jester@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheHumbleJester/alliage-core/issues"
+  },
+  "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
+  "dependencies": {
+    "ajv": "^6.12.0",
+    "yaml": "^1.7.2"
+  },
+  "devDependencies": {
+    "@types/yaml": "^1.2.0"
+  },
+  "alliageManifest": {
+    "type": "module",
+    "dependencies": ["alliage-lifecycle"]
+  }
+}
