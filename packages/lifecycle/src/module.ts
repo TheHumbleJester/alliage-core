@@ -3,7 +3,7 @@ import { PrimitiveContainer } from 'alliage/core/primitive-container';
 import { ServiceContainer } from 'alliage-di/service-container';
 
 import { Arguments } from 'alliage/core/utils/cli';
-import { INIT_EVENTS } from './events';
+import { INIT_EVENTS, LifeCycleInitEvent } from './events';
 import { EventManager } from './event-manager';
 
 export type LifeCycleEventHandlers = {
@@ -21,7 +21,9 @@ export abstract class AbstractLifeCycleAwareModule extends AbstractModule {
     const serviceContainer = container.get<ServiceContainer>('service_container');
     const eventManager = serviceContainer.getService<EventManager>('event_manager');
 
-    eventManager.on(INIT_EVENTS.PRE_INIT, this.registerServices.bind(this));
+    eventManager.on(INIT_EVENTS.PRE_INIT, (event: LifeCycleInitEvent) => {
+      this.registerServices(event.getServiceContainer());
+    });
 
     const eventHandlers = this.getEventHandlers();
     Object.entries(eventHandlers).forEach(([eventName, eventHandler]) => {

@@ -1,5 +1,6 @@
 import { AbstractWritableEvent, AbstractEvent } from 'alliage-lifecycle/events';
-import { ExecException } from 'child_process';
+
+import { CommandError } from '.';
 
 export enum BUILDER_SHELL_TASK_EVENTS {
   BEFORE_RUN = '@builder/tasks/SHELL_TASK/EVENTS/BEFORE_RUN',
@@ -31,57 +32,57 @@ export class ShellTaskBeforeRunEvent extends AbstractWritableEvent<
 
 export interface ShellTaskSuccessEventPayload {
   command: string;
-  output: string;
+  successOutput: string;
+  errorOutput: string;
 }
 
 export class ShellTaskSuccessEvent extends AbstractEvent<
   BUILDER_SHELL_TASK_EVENTS,
   ShellTaskSuccessEventPayload
 > {
-  constructor(command: string, output: string) {
-    super(BUILDER_SHELL_TASK_EVENTS.SUCCESS, { command, output });
+  constructor(command: string, successOutput: string, errorOutput: string) {
+    super(BUILDER_SHELL_TASK_EVENTS.SUCCESS, { command, successOutput, errorOutput });
   }
 
   getCommand() {
     return this.getPayload().command;
   }
 
-  getOutput() {
-    return this.getPayload().output;
+  getSuccessOutput() {
+    return this.getPayload().successOutput;
   }
 
-  static getParams(command: string, output: string) {
-    return super.getParams(command, output);
+  getErrorOutput() {
+    return this.getPayload().errorOutput;
+  }
+
+  static getParams(command: string, successOutput: string, errorOutput: string) {
+    return super.getParams(command, successOutput, errorOutput);
   }
 }
 
 export interface ShellTaskErrorEventPayload {
   command: string;
-  output: string;
-  exception: ExecException;
+  error: CommandError;
 }
 
 export class ShellTaskErrorEvent extends AbstractEvent<
   BUILDER_SHELL_TASK_EVENTS,
   ShellTaskErrorEventPayload
 > {
-  constructor(command: string, output: string, exception: ExecException) {
-    super(BUILDER_SHELL_TASK_EVENTS.ERROR, { command, output, exception });
+  constructor(command: string, error: CommandError) {
+    super(BUILDER_SHELL_TASK_EVENTS.ERROR, { command, error });
   }
 
   getCommand() {
     return this.getPayload().command;
   }
 
-  getOutput() {
-    return this.getPayload().output;
+  getError() {
+    return this.getPayload().error;
   }
 
-  getException() {
-    return this.getPayload().exception;
-  }
-
-  static getParams(command: string, output: string, exception: ExecException) {
-    return super.getParams(command, output, exception);
+  static getParams(command: string, error: CommandError) {
+    return super.getParams(command, error);
   }
 }

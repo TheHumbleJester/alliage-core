@@ -22,11 +22,11 @@ export = class ServiceLoaderModule extends AbstractLifeCycleAwareModule {
   getEventHandlers() {
     return {
       [CONFIG_EVENTS.LOAD]: loadConfig(CONFIG_NAME, validate(schema)),
-      [INIT_EVENTS.POST_INIT]: this.handlePostInit,
+      [INIT_EVENTS.INIT]: this.handleInit,
     };
   }
 
-  handlePostInit = (event: LifeCycleInitEvent) => {
+  handleInit = (event: LifeCycleInitEvent) => {
     const serviceContainer = event.getServiceContainer();
     const eventManager = serviceContainer.getService<EventManager>('event_manager');
 

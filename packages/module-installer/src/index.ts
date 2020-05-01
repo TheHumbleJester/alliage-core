@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 
 import { InstallScript } from 'alliage/scripts/install';
 import { Arguments, ArgumentsParser, CommandBuilder } from 'alliage/core/utils/cli';
@@ -30,6 +31,12 @@ const DEFAULT_PHASES = [
   INSTALLATION_PHASES.REGISTRATION,
 ];
 
+type ModulesDefinitionWithHash = ModulesDefinition & {
+  [key: string]: {
+    hash: string;
+  };
+};
+
 export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
   getEventHandlers() {
     return {
@@ -50,7 +57,12 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
   ) {
     const installScript = new InstallScript();
     return installScript.execute(
-      Arguments.create({ moduleName }, phases.length > 0 ? [phases.join(',')] : []),
+      Arguments.create(
+        { script: 'install', env },
+        phases.length > 0 ? [moduleName, phases.join(',')] : [moduleName],
+        '',
+        Arguments.create({}, ['install', moduleName]),
+      ),
       env,
     );
   }
@@ -96,12 +108,24 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
     const moduleName = args.get('moduleName');
     const modulePath = moduleName.match(LOCAL_MODULE_PATTERN)
       ? path.resolve(moduleName)
-      : require.resolve(moduleName);
+      : path.dirname(require.resolve(moduleName));
 
     // eslint-disable-next-line import/no-dynamic-require, global-require
     const packageInfo = require(`${modulePath}/package.json`);
 
-    if (packageInfo.alliageManifest) {
+    const moduleHash = crypto
+      .createHash('md5')
+      .update(packageInfo.version)
+      .digest('hex');
+
+    // eslint-disable-next-line import/no-dynamic-require, global-require
+    const modules: ModulesDefinitionWithHash = require(path.resolve(MODULES_DEFINITION_PATH));
+    const moduleRegistration = modules[packageInfo.name];
+
+    if (
+      packageInfo.alliageManifest &&
+      (!moduleRegistration || moduleRegistration.hash !== moduleHash)
+    ) {
       const phaseStartEvent = new InstallationPhaseStartEvent(
         moduleName,
         modulePath,
@@ -148,17 +172,18 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
           }
           break;
         case INSTALLATION_PHASES.PROCEDURES:
-          procedures.forEach((procedure) => {
-            procedure.proceed(manifest, modulePath);
-          });
+          if (manifest.installationProcedures) {
+            procedures.forEach((procedure) => {
+              procedure.proceed(manifest, modulePath);
+            });
+          }
           break;
         case INSTALLATION_PHASES.REGISTRATION:
           if (manifest.type === MODULE_TYPE.MODULE) {
-            // eslint-disable-next-line import/no-dynamic-require, global-require
-            const modules: ModulesDefinition = require(path.resolve(MODULES_DEFINITION_PATH));
             modules[packageInfo.name] = {
               module: moduleName,
               deps: manifest.dependencies,
+              hash: moduleHash,
             };
             fs.writeFileSync(MODULES_DEFINITION_PATH, JSON.stringify(modules, null, 2));
           }

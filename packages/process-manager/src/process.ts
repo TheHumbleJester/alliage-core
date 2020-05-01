@@ -1,7 +1,5 @@
 import { Arguments, CommandBuilder } from 'alliage/core/utils/cli';
 
-import { ServiceContainer } from 'alliage-di/service-container';
-
 export enum SIGNAL {
   SIGTERM = '@process-manager/SIGNAL/SIGTERM',
   SIGINT = '@process-manager/SIGNAL/SIGINT',
@@ -19,24 +17,34 @@ export interface SignalPayload {
 
 export const SUCCESSFUL_SIGNALS = [SIGNAL.SIGINT, SIGNAL.SIGTERM, SIGNAL.SUCCESS_SHUTDOWN];
 
-export type StopProcessHandler = (success: boolean) => Promise<void>;
-
 export abstract class AbstractProcess {
+  private shutdownPromiseResolver?: Function;
+
   abstract getName(): string;
 
-  abstract configure(config: CommandBuilder): void;
-
-  abstract execute(args: Arguments, stopProcess: StopProcessHandler, env: string): Promise<boolean>;
+  abstract execute(args: Arguments, env: string): Promise<boolean>;
 
   /* istanbul ignore next */
   async terminate(
     _args: Arguments,
     _env: string,
-    _signal: string,
+    _signal: SIGNAL,
     _payload: SignalPayload,
   ): Promise<void> {
     await Promise.resolve();
   }
 
-  registerServices(_serviceContainer: ServiceContainer) {}
+  protected waitToBeShutdown(): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.shutdownPromiseResolver = resolve;
+    });
+  }
+
+  shutdown(success: boolean) {
+    if (this.shutdownPromiseResolver) {
+      this.shutdownPromiseResolver(success);
+    }
+  }
+
+  configure(_config: CommandBuilder) {}
 }

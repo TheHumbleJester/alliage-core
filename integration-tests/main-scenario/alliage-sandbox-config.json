@@ -1,8 +1,8 @@
 {
+  "command": "ts-node -P <projectRoot>/tsconfig.json",
   "copyFiles": [
     "<scenarioRoot>/src",
-    "<scenarioRoot>/config",
-    "<scenarioRoot>/alliage-modules.json"
+    "<scenarioRoot>/config"
   ],
   "linkModules": {
     "alliage-di": "<projectRoot>/packages/dependency-injection/dist",
@@ -11,6 +11,9 @@
     "alliage-config-loader": "<projectRoot>/packages/configuration-loader/dist",
     "alliage-module-installer": "<projectRoot>/packages/module-installer/dist",
     "alliage-service-loader": "<projectRoot>/packages/service-loader/dist",
-    "alliage-parameters-loader": "<projectRoot>/packages/parameters-loader/dist"
-  }
+    "alliage-parameters-loader": "<projectRoot>/packages/parameters-loader/dist",
+    "alliage-builder": "<projectRoot>/packages/builder/dist",
+    "alliage-core": "<projectRoot>/packages/core/dist"
+  },
+  "alliageModules": ["alliage-module-installer", "alliage-lifecycle", "alliage-di"]
 }

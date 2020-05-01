@@ -1,6 +1,6 @@
 {
   "name": "alliage-process-manager",
-  "version": "0.0.1",
+  "version": "0.0.1-pre1",
   "description": "Process manager module for Alliage",
   "main": "dist/index.js",
   "scripts": {
@@ -18,6 +18,11 @@
   "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
   "alliageManifest": {
     "type": "module",
-    "dependencies": ["alliage-configuration-loader"]
+    "dependencies": [
+      "alliage-di",
+      "alliage-lifecycle",
+      "alliage-service-loader",
+      "alliage-config-loader"
+    ]
   }
 }

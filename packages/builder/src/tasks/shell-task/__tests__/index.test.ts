@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 
 import { EventManager } from 'alliage-lifecycle/event-manager';
 
-import { ShellTask } from '..';
+import { ShellTask, CommandError } from '..';
 import {
   ShellTaskBeforeRunEvent,
   ShellTaskSuccessEvent,
@@ -68,7 +68,8 @@ describe('builder/tasks/shell-task', () => {
 
         successHandler.mockImplementationOnce((event: ShellTaskSuccessEvent) => {
           expect(event.getCommand()).toEqual('updated_test_cmd');
-          expect(event.getOutput()).toEqual('test_stdout');
+          expect(event.getSuccessOutput()).toEqual('test_stdout');
+          expect(event.getErrorOutput()).toEqual('test_stderr');
         });
 
         await task.run({ cmd: 'test_cmd' });
@@ -81,15 +82,18 @@ describe('builder/tasks/shell-task', () => {
       });
 
       it('should throw an error in case of command failure and trigger events', async () => {
-        const execError = new Error();
+        const execError = new Error('test_error_message');
         execMock.mockImplementationOnce((_cmd: string, callback: Function) => {
           callback(execError, 'test_stdout', 'test_stderr');
         });
 
         errorHandler.mockImplementationOnce((event: ShellTaskErrorEvent) => {
           expect(event.getCommand()).toEqual('test_cmd');
-          expect(event.getOutput()).toEqual('test_stderr');
-          expect(event.getException()).toBe(execError);
+          expect(event.getError()).toBeInstanceOf(CommandError);
+          expect(event.getError().message).toBe('test_error_message');
+          expect(event.getError().error).toBe(execError);
+          expect(event.getError().stdout).toEqual('test_stdout');
+          expect(event.getError().stderr).toEqual('test_stderr');
         });
 
         let error = null;
@@ -99,7 +103,11 @@ describe('builder/tasks/shell-task', () => {
           error = e;
         }
 
-        expect(error).toBe(execError);
+        expect(error).toBeInstanceOf(CommandError);
+        expect(error.message).toBe('test_error_message');
+        expect(error.error).toBe(execError);
+        expect(error.stdout).toEqual('test_stdout');
+        expect(error.stderr).toEqual('test_stderr');
 
         expect(execMock).toHaveBeenCalledTimes(1);
         expect(execMock).toHaveBeenCalledWith('test_cmd', expect.any(Function));

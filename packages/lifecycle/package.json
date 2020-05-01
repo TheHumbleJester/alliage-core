@@ -1,6 +1,6 @@
 {
   "name": "alliage-lifecycle",
-  "version": "0.0.1",
+  "version": "0.0.1-pre1",
   "description": "Lifecycle module for Alliage",
   "main": "index.js",
   "scripts": {
@@ -18,6 +18,8 @@
   "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
   "alliageManifest": {
     "type": "module",
-    "dependencies": ["alliage-di"]
+    "dependencies": [
+      "alliage-di"
+    ]
   }
 }

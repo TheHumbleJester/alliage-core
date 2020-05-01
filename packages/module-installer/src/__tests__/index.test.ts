@@ -55,6 +55,18 @@ describe('module-installer', () => {
     });
 
     describe('#handleInstall', () => {
+      jest.doMock(
+        path.resolve('./alliage-modules.json'),
+        () => ({
+          'already-installed-module': {
+            module: 'already-installed-module',
+            deps: [],
+            hash: '25e64aa754c310d45c1e084d574c1bb0',
+          },
+        }),
+        { virtual: true },
+      );
+
       const eventManager = new EventManager();
       const serviceContainer = new ServiceContainer();
 
@@ -220,18 +232,15 @@ describe('module-installer', () => {
 
         installScriptExecuteMock
           .mockImplementationOnce((args: Arguments, env) => {
-            expect(args.get('moduleName')).toEqual('module1');
-            expect(args.getRemainingArgs()).toEqual([]);
+            expect(args.getRemainingArgs()).toEqual(['module1']);
             expect(env).toEqual('test');
           })
           .mockImplementationOnce((args: Arguments, env) => {
-            expect(args.get('moduleName')).toEqual('module2');
-            expect(args.getRemainingArgs()).toEqual([]);
+            expect(args.getRemainingArgs()).toEqual(['module2']);
             expect(env).toEqual('test');
           })
           .mockImplementationOnce((args: Arguments, env) => {
-            expect(args.get('moduleName')).toEqual('test-module');
-            expect(args.getRemainingArgs()).toEqual(['procedures,registration']);
+            expect(args.getRemainingArgs()).toEqual(['test-module', 'procedures,registration']);
             expect(env).toEqual('test');
           });
 
@@ -251,7 +260,6 @@ describe('module-installer', () => {
       });
 
       it('should then run the procedures phase', async () => {
-        jest.doMock(path.resolve('./alliage-modules.json'), () => ({}), { virtual: true });
         jest.doMock(
           '/path/to/test-module/package.json',
           () => ({
@@ -307,8 +315,7 @@ describe('module-installer', () => {
         });
 
         installScriptExecuteMock.mockImplementationOnce((args: Arguments, env) => {
-          expect(args.get('moduleName')).toEqual('test-module');
-          expect(args.getRemainingArgs()).toEqual(['registration']);
+          expect(args.getRemainingArgs()).toEqual(['test-module', 'registration']);
           expect(env).toEqual('test');
         });
 
@@ -339,9 +346,59 @@ describe('module-installer', () => {
         expect(installScriptExecuteMock).toHaveBeenCalledTimes(1);
       });
 
+      it("should not run any procedure if there's no installation procedures in the manifest", async () => {
+        jest.doMock(
+          '/path/to/test-module/package.json',
+          () => ({
+            name: 'test-module',
+            version: '0.0.1',
+            alliageManifest: {
+              type: 'module',
+              dependencies: ['module1', 'module2'],
+            },
+          }),
+          { virtual: true },
+        );
+
+        class DummyInstallationProcedure extends AbstractInstallationProcedure {
+          getName() {
+            return 'dummy_procedure';
+          }
+
+          getSchema() {
+            return {
+              dummy: {
+                type: 'boolean',
+              },
+            };
+          }
+
+          proceed() {}
+        }
+        const dummyProcedureSpy = jest.spyOn(DummyInstallationProcedure.prototype, 'proceed');
+
+        const scWithProcedure = new ServiceContainer();
+        scWithProcedure.registerService('dummy_procedure', DummyInstallationProcedure);
+        scWithProcedure.addService('event_manager', eventManager);
+
+        const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
+          serviceContainer: scWithProcedure,
+          args: Arguments.create({ moduleName: 'test-module' }, ['procedures,registration']),
+          env: 'test',
+        });
+
+        await module.handleInstall(installEvent);
+
+        expect(dummyProcedureSpy).not.toHaveBeenCalled();
+        expect(phasesInitHandler).toHaveBeenCalledTimes(1);
+        expect(phaseStartHandler).toHaveBeenCalledTimes(1);
+        expect(schemaValidationHandler).toHaveBeenCalledTimes(1);
+        expect(phaseEndHandler).toHaveBeenCalledTimes(1);
+        expect(installScriptExecuteMock).toHaveBeenCalledTimes(1);
+      });
+
       it('should finally run the registration phase', async () => {
         const writeSpy = jest.spyOn(fs, 'writeFileSync').mockReturnValue();
-        jest.doMock(path.resolve('./alliage-modules.json'), () => ({}), { virtual: true });
         jest.doMock(
           '/path/to/test-module/package.json',
           () => ({
@@ -390,9 +447,15 @@ describe('module-installer', () => {
           './alliage-modules.json',
           JSON.stringify(
             {
+              'already-installed-module': {
+                module: 'already-installed-module',
+                deps: [],
+                hash: '25e64aa754c310d45c1e084d574c1bb0',
+              },
               'test-module': {
                 module: 'test-module',
                 deps: ['module1', 'module2'],
+                hash: '25e64aa754c310d45c1e084d574c1bb0',
               },
             },
             null,
@@ -555,6 +618,34 @@ describe('module-installer', () => {
         await module.handleInstall(installEvent);
 
         expect(phaseStartHandler).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not install already installed modules', async () => {
+        jest.doMock(
+          path.resolve('/path/to/already-installed-module/package.json'),
+          () => ({
+            name: 'already-installed-module',
+            version: '0.0.1',
+            alliageManifest: {
+              type: 'module',
+              dependencies: [],
+            },
+          }),
+          { virtual: true },
+        );
+
+        const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
+          serviceContainer,
+          args: Arguments.create({ moduleName: 'already-installed-module' }),
+          env: 'test',
+        });
+
+        await module.handleInstall(installEvent);
+
+        expect(phasesInitHandler).toHaveBeenCalledTimes(1);
+        expect(phaseStartHandler).not.toHaveBeenCalled();
+        expect(schemaValidationHandler).not.toHaveBeenCalled();
+        expect(phaseEndHandler).not.toHaveBeenCalled();
       });
     });
   });

@@ -1,33 +1,56 @@
 import { CommandBuilder, Arguments } from 'alliage/core/utils/cli';
-import { ServiceContainer } from 'alliage-di/service-container';
 
-import { AbstractProcess, StopProcessHandler } from '../process';
+import { AbstractProcess } from '../process';
 
 describe('process-manager/process', () => {
   describe('AbstractProcess', () => {
+    const executeMock = jest.fn();
+
     class Process extends AbstractProcess {
       getName() {
         return 'test-process';
       }
 
-      configure(_config: CommandBuilder) {}
-
-      async execute(_args: Arguments, _stopProcess: StopProcessHandler, _env: string) {
-        return true;
+      async execute(_args: Arguments, _env: string) {
+        const res = await this.waitToBeShutdown();
+        executeMock();
+        return res;
       }
     }
     const process = new Process();
 
-    describe('#registerService', () => {
-      it('should initially not register any service', () => {
-        const scMock = {
-          addService: jest.fn(),
-          registerService: jest.fn(),
-        };
-        process.registerServices((scMock as unknown) as ServiceContainer);
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
 
-        expect(scMock.addService).not.toHaveBeenCalled();
-        expect(scMock.registerService).not.toHaveBeenCalled();
+    describe('#configure', () => {
+      it('should have a default configure method that does nothing', () => {
+        const builder = CommandBuilder.create();
+        process.configure(builder);
+
+        expect(builder.getDescription()).toEqual('');
+        expect(builder.getArguments()).toEqual([]);
+        expect(builder.getOptions()).toEqual({});
+      });
+    });
+
+    describe('#waitToBeShutdown / #shutdown', () => {
+      it('should not fail if the "shutdown" method has been called without calling "waitToBeShutdown" before', () => {
+        expect(() => process.shutdown(true)).not.toThrow();
+      });
+
+      it('should hang the process until the shutdown method has been called', async () => {
+        const executePromise = process.execute(Arguments.create(), 'test');
+
+        expect(executeMock).not.toHaveBeenCalled();
+
+        setTimeout(() => {
+          process.shutdown(true);
+        }, 100);
+
+        const res = await executePromise;
+        expect(executeMock).toHaveBeenCalledTimes(1);
+        expect(res).toBe(true);
       });
     });
   });

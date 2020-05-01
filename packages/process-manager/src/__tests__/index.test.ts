@@ -1,21 +1,22 @@
-import { PrimitiveContainer } from 'alliage/core/primitive-container';
-import { ServiceContainer } from 'alliage-di/service-container';
-import { AbstractProcess, SIGNAL } from 'alliage-process-manager/process';
-import { INIT_EVENTS, RUN_EVENTS } from 'alliage-lifecycle/events';
+import { promisify } from 'util';
+
 import { Arguments, CommandBuilder } from 'alliage/core/utils/cli';
-import { INITIALIZATION_CONTEXT } from 'alliage/core/kernel';
+
+import { ServiceContainer } from 'alliage-di/service-container';
+import { AbstractProcess, SignalPayload, SIGNAL } from 'alliage-process-manager/process';
+import { RUN_EVENTS, LifeCycleRunEvent } from 'alliage-lifecycle/events';
+import { EventManager } from 'alliage-lifecycle/event-manager';
+
+import ProcessManagerModule from '..';
 import {
   PROCESS_EVENTS,
-  PreRegisterServicesEvent,
-  PostRegisterServicesEvent,
   PreConfigureEvent,
   PostConfigureEvent,
   PreExecuteEvent,
   PreTerminateEvent,
-  PostTerminateEvent,
-} from 'alliage-process-manager/events';
+} from '../events';
 
-import ProcessManagerModule from '..';
+const waitForNextTick = promisify(process.nextTick);
 
 describe('process-manager', () => {
   beforeEach(() => {
@@ -23,8 +24,9 @@ describe('process-manager', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
     ((process.exit as unknown) as jest.SpyInstance).mockRestore();
+    process.removeAllListeners();
   });
 
   afterAll(() => {
@@ -37,398 +39,379 @@ describe('process-manager', () => {
         return 'test-process';
       }
 
-      registerServices() {}
+      configure(cb: CommandBuilder) {
+        cb.addArgument('testArgument', {
+          type: 'string',
+          describe: 'Test argument',
+        });
+      }
 
-      configure() {}
-
-      execute() {
+      execute(_args: Arguments, _env: string) {
         return Promise.resolve(true);
       }
     }
 
-    const registerServicesMock = jest.spyOn(TestProcess.prototype, 'registerServices');
-    const configureMock = jest.spyOn(TestProcess.prototype, 'configure');
-    const executeMock = jest.spyOn(TestProcess.prototype, 'execute');
-    const terminateMock = jest.spyOn(TestProcess.prototype, 'terminate');
+    const module = new ProcessManagerModule();
+    const serviceContainer = new ServiceContainer();
+    const eventManager = new EventManager();
+    const testProcess = new TestProcess();
 
-    const pmm = new ProcessManagerModule();
-    const pc = new PrimitiveContainer();
-    const sc = new ServiceContainer();
+    const configureSpy = jest.spyOn(TestProcess.prototype, 'configure');
+    const executeSpy = jest.spyOn(TestProcess.prototype, 'execute');
+    const terminateSpy = jest.spyOn(TestProcess.prototype, 'terminate');
 
-    const eventManagerMock = {
-      on: jest.fn(),
-      emit: jest.fn(),
-    };
+    const preConfigureHandler = jest.fn();
+    const postConfigureHandler = jest.fn();
+    const preExecuteHandler = jest.fn();
+    const preTerminateHandler = jest.fn();
+    const postTerminateHandler = jest.fn();
 
-    pc.set('service_container', sc);
-    sc.addService('event_manager', eventManagerMock);
-    sc.registerService('test_process', TestProcess);
+    eventManager.on(PROCESS_EVENTS.PRE_CONFIGURE, preConfigureHandler);
+    eventManager.on(PROCESS_EVENTS.POST_CONFIGURE, postConfigureHandler);
+    eventManager.on(PROCESS_EVENTS.PRE_EXECUTE, preExecuteHandler);
+    eventManager.on(PROCESS_EVENTS.PRE_TERMINATE, preTerminateHandler);
+    eventManager.on(PROCESS_EVENTS.POST_TERMINATE, postTerminateHandler);
 
-    describe('#getKernelEventHandlers', () => {
-      it('should return the kernel event handers', () => {
-        expect(pmm.getKernelEventHandlers()).toEqual({
-          init: pmm.onInit,
+    serviceContainer.addService('test-process', testProcess);
+    serviceContainer.addService('event_manager', eventManager);
+
+    describe('#getEventHandlers', () => {
+      it('should listen to the install event', () => {
+        expect(module.getEventHandlers()).toEqual({
+          [RUN_EVENTS.RUN]: module.handleRun,
         });
       });
     });
 
-    describe('#onInit', () => {
-      describe('With an existing process name', () => {
-        let initEventHandler: Function;
-        let runEventHandler: Function;
-        const processEventHandlers: { [event: string]: Function } = {};
-
-        it('should listen to the INIT_EVENTS.INIT event', () => {
-          pmm.onInit(
-            Arguments.create({}, ['test-process']),
-            'test',
-            pc,
-            INITIALIZATION_CONTEXT.RUN,
-          );
-          expect(eventManagerMock.on).toHaveBeenCalledTimes(1);
-          expect(eventManagerMock.on).toHaveBeenCalledWith(INIT_EVENTS.INIT, expect.any(Function));
-
-          // eslint-disable-next-line prefer-destructuring
-          initEventHandler = eventManagerMock.on.mock.calls[0][1];
+    describe('#handleRun', () => {
+      it('should run the process corresponding to provided name in the arguments and exit successfully', async () => {
+        const args = Arguments.create({}, [
+          'test-process',
+          'test-argument-value',
+          '--pre-configure-option=test1',
+          '--post-configure-option=test2',
+        ]);
+        const event = new LifeCycleRunEvent(RUN_EVENTS.RUN, {
+          serviceContainer,
+          args,
+          env: 'test',
         });
+        const otherTestProcess = new TestProcess();
 
-        it('should load the process specified in the arguments and listen to the RUN_EVENT.RUN event', () => {
-          initEventHandler();
+        preConfigureHandler.mockImplementationOnce((event: PreConfigureEvent) => {
+          expect(event.getEnv()).toEqual('test');
+          expect(event.getProcess()).toBe(testProcess);
+          expect(event.getConfig()).toBeInstanceOf(CommandBuilder);
 
-          // Checks that process lifecycle events are emitted
-          expect(eventManagerMock.emit.mock.calls).toEqual([
-            [PROCESS_EVENTS.PRE_REGISTER_SERVICES, expect.any(PreRegisterServicesEvent)],
-            [PROCESS_EVENTS.POST_REGISTER_SERVICES, expect.any(PostRegisterServicesEvent)],
-          ]);
-
-          // Checks that the process registerServices method is called between the "REGISTER_SERVICES" process lifecycle events
-          expect(registerServicesMock).toHaveBeenCalledWith(sc);
-          expect(registerServicesMock.mock.invocationCallOrder[0]).toBeGreaterThan(
-            eventManagerMock.emit.mock.invocationCallOrder[0],
-          );
-          expect(registerServicesMock.mock.invocationCallOrder[0]).toBeLessThan(
-            eventManagerMock.emit.mock.invocationCallOrder[1],
-          );
-
-          // Checks that the it has listened to RUN_EVENTS.RUN event
-          expect(eventManagerMock.on).toHaveBeenCalledTimes(1);
-          expect(eventManagerMock.on).toHaveBeenCalledWith(RUN_EVENTS.RUN, expect.any(Function));
-
-          // eslint-disable-next-line prefer-destructuring
-          runEventHandler = eventManagerMock.on.mock.calls[0][1];
-        });
-
-        it('should run the process, emit process lifcycle events, and listen to process events', async () => {
-          executeMock.mockResolvedValue(true);
-          jest.spyOn(process, 'on').mockImplementation(<any>((event: string, handler: Function) => {
-            processEventHandlers[event] = handler;
-          }));
-          await runEventHandler();
-
-          // Checks that process lifecycle events are emitted
-          expect(eventManagerMock.emit.mock.calls).toEqual([
-            [PROCESS_EVENTS.PRE_CONFIGURE, expect.any(PreConfigureEvent)],
-            [PROCESS_EVENTS.POST_CONFIGURE, expect.any(PostConfigureEvent)],
-            [PROCESS_EVENTS.PRE_EXECUTE, expect.any(PreExecuteEvent)],
-            [PROCESS_EVENTS.PRE_TERMINATE, expect.any(PreTerminateEvent)],
-            [PROCESS_EVENTS.POST_TERMINATE, expect.any(PostTerminateEvent)],
-          ]);
-
-          // Checks that the process configure method is called between the "CONFIGURE" process lifecycle events
-          expect(configureMock).toHaveBeenCalledWith(expect.any(CommandBuilder));
-          expect(configureMock.mock.invocationCallOrder[0]).toBeGreaterThan(
-            eventManagerMock.emit.mock.invocationCallOrder[0],
-          );
-          expect(configureMock.mock.invocationCallOrder[0]).toBeLessThan(
-            eventManagerMock.emit.mock.invocationCallOrder[1],
-          );
-
-          // Checks that the process execute method is called between the "EXECUTE" process lifecycle events
-          expect(executeMock).toHaveBeenCalledWith(
-            expect.any(Arguments),
-            expect.any(Function),
-            'test',
-          );
-          expect(executeMock.mock.invocationCallOrder[0]).toBeGreaterThan(
-            eventManagerMock.emit.mock.invocationCallOrder[2],
-          );
-          expect(executeMock.mock.invocationCallOrder[0]).toBeLessThan(
-            eventManagerMock.emit.mock.invocationCallOrder[3],
-          );
-
-          const preTerminateEvent: PreTerminateEvent = eventManagerMock.emit.mock.calls[3][1];
-          expect(preTerminateEvent.getEnv()).toEqual('test');
-          expect(preTerminateEvent.getSignal()).toEqual(SIGNAL.SUCCESS_SHUTDOWN);
-          expect(preTerminateEvent.getSignalPayload()).toEqual({});
-
-          const postTerminateEvent: PostTerminateEvent = eventManagerMock.emit.mock.calls[4][1];
-          expect(postTerminateEvent.getEnv()).toEqual('test');
-          expect(postTerminateEvent.getSignal()).toEqual(SIGNAL.SUCCESS_SHUTDOWN);
-          expect(postTerminateEvent.getSignalPayload()).toEqual({});
-
-          // Checks that the process terminate method is called between the "TERMINATE" process lifecycle events
-          expect(terminateMock).toHaveBeenCalledTimes(1);
-          expect(terminateMock).toHaveBeenCalledWith(
-            expect.any(Arguments),
-            'test',
-            SIGNAL.SUCCESS_SHUTDOWN,
-            {},
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeGreaterThan(
-            eventManagerMock.emit.mock.invocationCallOrder[3],
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeLessThan(
-            eventManagerMock.emit.mock.invocationCallOrder[4],
-          );
-
-          // Checks that it has listened to process events
-          expect(processEventHandlers).toEqual({
-            SIGINT: expect.any(Function),
-            SIGTERM: expect.any(Function),
-            uncaughtException: expect.any(Function),
-            unhandledRejection: expect.any(Function),
+          event.getConfig().addOption('pre-configure-option', {
+            type: 'string',
+            describe: 'Pre configure option',
           });
         });
 
-        it('should call the terminate method and events with a SIGNAL.FAILURE_SHUTDOWN when the execute method returns false', async () => {
-          executeMock.mockResolvedValue(false);
-          jest.spyOn(process, 'on').mockImplementation(<any>((event: string, handler: Function) => {
-            processEventHandlers[event] = handler;
-          }));
-          await runEventHandler();
+        postConfigureHandler.mockImplementationOnce((event: PostConfigureEvent) => {
+          expect(event.getEnv()).toEqual('test');
+          expect(event.getProcess()).toBe(testProcess);
+          expect(event.getConfig()).toBeInstanceOf(CommandBuilder);
 
-          // Checks that process lifecycle events are emitted
-          expect(eventManagerMock.emit.mock.calls).toEqual([
-            [PROCESS_EVENTS.PRE_CONFIGURE, expect.any(PreConfigureEvent)],
-            [PROCESS_EVENTS.POST_CONFIGURE, expect.any(PostConfigureEvent)],
-            [PROCESS_EVENTS.PRE_EXECUTE, expect.any(PreExecuteEvent)],
-            [PROCESS_EVENTS.PRE_TERMINATE, expect.any(PreTerminateEvent)],
-            [PROCESS_EVENTS.POST_TERMINATE, expect.any(PostTerminateEvent)],
-          ]);
-
-          const preTerminateEvent: PreTerminateEvent = eventManagerMock.emit.mock.calls[3][1];
-          expect(preTerminateEvent.getEnv()).toEqual('test');
-          expect(preTerminateEvent.getSignal()).toEqual(SIGNAL.FAILURE_SHUTDOWN);
-          expect(preTerminateEvent.getSignalPayload()).toEqual({});
-
-          const postTerminateEvent: PostTerminateEvent = eventManagerMock.emit.mock.calls[4][1];
-          expect(postTerminateEvent.getEnv()).toEqual('test');
-          expect(postTerminateEvent.getSignal()).toEqual(SIGNAL.FAILURE_SHUTDOWN);
-          expect(postTerminateEvent.getSignalPayload()).toEqual({});
-
-          // Checks that the process terminate method is called between the "TERMINATE" process lifecycle events
-          expect(terminateMock).toHaveBeenCalledTimes(1);
-          expect(terminateMock).toHaveBeenCalledWith(
-            expect.any(Arguments),
-            'test',
-            SIGNAL.FAILURE_SHUTDOWN,
-            {},
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeGreaterThan(
-            eventManagerMock.emit.mock.invocationCallOrder[3],
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeLessThan(
-            eventManagerMock.emit.mock.invocationCallOrder[4],
-          );
-        });
-
-        it('should call the terminate method in case of SIGINT signal and trigger process lifcycle events', async () => {
-          await processEventHandlers.SIGINT();
-
-          // Checks that process lifecycle events are emitted
-          expect(eventManagerMock.emit.mock.calls).toEqual([
-            [PROCESS_EVENTS.PRE_TERMINATE, expect.any(PreTerminateEvent)],
-            [PROCESS_EVENTS.POST_TERMINATE, expect.any(PostTerminateEvent)],
-          ]);
-
-          const preTerminateEvent: PreTerminateEvent = eventManagerMock.emit.mock.calls[0][1];
-          expect(preTerminateEvent.getEnv()).toEqual('test');
-          expect(preTerminateEvent.getSignal()).toEqual(SIGNAL.SIGINT);
-          expect(preTerminateEvent.getSignalPayload()).toEqual({});
-
-          const postTerminateEvent: PostTerminateEvent = eventManagerMock.emit.mock.calls[1][1];
-          expect(postTerminateEvent.getEnv()).toEqual('test');
-          expect(postTerminateEvent.getSignal()).toEqual(SIGNAL.SIGINT);
-          expect(postTerminateEvent.getSignalPayload()).toEqual({});
-
-          // Checks that the process terminate method is called between the "TERMINATE" process lifecycle events
-          expect(terminateMock).toHaveBeenCalledTimes(1);
-          expect(terminateMock).toHaveBeenCalledWith(
-            expect.any(Arguments),
-            'test',
-            SIGNAL.SIGINT,
-            {},
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeGreaterThan(
-            eventManagerMock.emit.mock.invocationCallOrder[0],
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeLessThan(
-            eventManagerMock.emit.mock.invocationCallOrder[1],
-          );
-        });
-
-        it('should call the terminate method in case of SIGTERM signal and trigger process lifcycle events', async () => {
-          await processEventHandlers.SIGTERM();
-
-          // Checks that process lifecycle events are emitted
-          expect(eventManagerMock.emit.mock.calls).toEqual([
-            [PROCESS_EVENTS.PRE_TERMINATE, expect.any(PreTerminateEvent)],
-            [PROCESS_EVENTS.POST_TERMINATE, expect.any(PostTerminateEvent)],
-          ]);
-
-          const preTerminateEvent: PreTerminateEvent = eventManagerMock.emit.mock.calls[0][1];
-          expect(preTerminateEvent.getEnv()).toEqual('test');
-          expect(preTerminateEvent.getSignal()).toEqual(SIGNAL.SIGTERM);
-          expect(preTerminateEvent.getSignalPayload()).toEqual({});
-
-          const postTerminateEvent: PostTerminateEvent = eventManagerMock.emit.mock.calls[1][1];
-          expect(postTerminateEvent.getEnv()).toEqual('test');
-          expect(postTerminateEvent.getSignal()).toEqual(SIGNAL.SIGTERM);
-          expect(postTerminateEvent.getSignalPayload()).toEqual({});
-
-          // Checks that the process terminate method is called between the "TERMINATE" process lifecycle events
-          expect(terminateMock).toHaveBeenCalledTimes(1);
-          expect(terminateMock).toHaveBeenCalledWith(
-            expect.any(Arguments),
-            'test',
-            SIGNAL.SIGTERM,
-            {},
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeGreaterThan(
-            eventManagerMock.emit.mock.invocationCallOrder[0],
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeLessThan(
-            eventManagerMock.emit.mock.invocationCallOrder[1],
-          );
-        });
-
-        it('should call the terminate method in case of uncaughtException signal and trigger process lifcycle events', async () => {
-          const errorMock = new Error();
-          await processEventHandlers.uncaughtException(errorMock);
-
-          // Checks that process lifecycle events are emitted
-          expect(eventManagerMock.emit.mock.calls).toEqual([
-            [PROCESS_EVENTS.PRE_TERMINATE, expect.any(PreTerminateEvent)],
-            [PROCESS_EVENTS.POST_TERMINATE, expect.any(PostTerminateEvent)],
-          ]);
-
-          const preTerminateEvent: PreTerminateEvent = eventManagerMock.emit.mock.calls[0][1];
-          expect(preTerminateEvent.getEnv()).toEqual('test');
-          expect(preTerminateEvent.getSignal()).toEqual(SIGNAL.UNCAUGHT_EXCEPTION);
-          expect(preTerminateEvent.getSignalPayload()).toEqual({ error: errorMock });
-
-          const postTerminateEvent: PostTerminateEvent = eventManagerMock.emit.mock.calls[1][1];
-          expect(postTerminateEvent.getEnv()).toEqual('test');
-          expect(postTerminateEvent.getSignal()).toEqual(SIGNAL.UNCAUGHT_EXCEPTION);
-          expect(postTerminateEvent.getSignalPayload()).toEqual({ error: errorMock });
-
-          // Checks that the process terminate method is called between the "TERMINATE" process lifecycle events
-          expect(terminateMock).toHaveBeenCalledTimes(1);
-          expect(terminateMock).toHaveBeenCalledWith(
-            expect.any(Arguments),
-            'test',
-            SIGNAL.UNCAUGHT_EXCEPTION,
-            { error: errorMock },
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeGreaterThan(
-            eventManagerMock.emit.mock.invocationCallOrder[0],
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeLessThan(
-            eventManagerMock.emit.mock.invocationCallOrder[1],
-          );
-        });
-
-        it('should call the terminate method in case of unhandledRejection signal and trigger process lifcycle events', async () => {
-          const errorMock = new Error();
-          const promiseMock = Promise.reject(errorMock);
-          await processEventHandlers.unhandledRejection(errorMock, promiseMock);
-
-          // Checks that process lifecycle events are emitted
-          expect(eventManagerMock.emit.mock.calls).toEqual([
-            [PROCESS_EVENTS.PRE_TERMINATE, expect.any(PreTerminateEvent)],
-            [PROCESS_EVENTS.POST_TERMINATE, expect.any(PostTerminateEvent)],
-          ]);
-
-          const preTerminateEvent: PreTerminateEvent = eventManagerMock.emit.mock.calls[0][1];
-          expect(preTerminateEvent.getEnv()).toEqual('test');
-          expect(preTerminateEvent.getSignal()).toEqual(SIGNAL.UNHANDLED_REJECTION);
-          expect(preTerminateEvent.getSignalPayload()).toEqual({
-            reason: errorMock,
-            promise: promiseMock,
+          event.getConfig().addOption('post-configure-option', {
+            type: 'string',
+            describe: 'Post configure option',
           });
-
-          const postTerminateEvent: PostTerminateEvent = eventManagerMock.emit.mock.calls[1][1];
-          expect(postTerminateEvent.getEnv()).toEqual('test');
-          expect(postTerminateEvent.getSignal()).toEqual(SIGNAL.UNHANDLED_REJECTION);
-          expect(postTerminateEvent.getSignalPayload()).toEqual({
-            reason: errorMock,
-            promise: promiseMock,
-          });
-
-          // Checks that the process terminate method is called between the "TERMINATE" process lifecycle events
-          expect(terminateMock).toHaveBeenCalledTimes(1);
-          expect(terminateMock).toHaveBeenCalledWith(
-            expect.any(Arguments),
-            'test',
-            SIGNAL.UNHANDLED_REJECTION,
-            { reason: errorMock, promise: promiseMock },
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeGreaterThan(
-            eventManagerMock.emit.mock.invocationCallOrder[0],
-          );
-          expect(terminateMock.mock.invocationCallOrder[0]).toBeLessThan(
-            eventManagerMock.emit.mock.invocationCallOrder[1],
-          );
         });
+
+        preExecuteHandler.mockImplementationOnce((event: PreExecuteEvent) => {
+          expect(event.getEnv()).toEqual('test');
+          expect(event.getProcess()).toBe(testProcess);
+          expect(event.getArgs()).toBeInstanceOf(Arguments);
+          expect(
+            event
+              .getArgs()
+              .getParent()
+              ?.getParent(),
+          ).toBe(args);
+          expect(event.getArgs().get('testArgument')).toEqual('test-argument-value');
+          expect(event.getArgs().get('pre-configure-option')).toEqual('test1');
+          expect(event.getArgs().get('post-configure-option')).toEqual('test2');
+
+          event.setProcess(otherTestProcess);
+        });
+
+        executeSpy.mockImplementationOnce(async (processArgs: Arguments, env: string) => {
+          expect(processArgs.getParent()?.getParent()).toBe(args);
+          expect(processArgs.get('testArgument')).toEqual('test-argument-value');
+          expect(processArgs.get('pre-configure-option')).toEqual('test1');
+          expect(processArgs.get('post-configure-option')).toEqual('test2');
+          expect(env).toEqual('test');
+          return true;
+        });
+
+        preTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getEnv()).toEqual('test');
+          expect(event.getProcess()).toBe(otherTestProcess);
+          expect(event.getSignal()).toEqual(SIGNAL.SUCCESS_SHUTDOWN);
+          expect(event.getSignalPayload()).toEqual({});
+          expect(event.getArgs()).toBeInstanceOf(Arguments);
+          expect(
+            event
+              .getArgs()
+              .getParent()
+              ?.getParent(),
+          ).toBe(args);
+          expect(event.getArgs().get('testArgument')).toEqual('test-argument-value');
+          expect(event.getArgs().get('pre-configure-option')).toEqual('test1');
+          expect(event.getArgs().get('post-configure-option')).toEqual('test2');
+        });
+
+        terminateSpy.mockImplementationOnce(
+          async (processArgs: Arguments, env: string, signal: SIGNAL, payload: SignalPayload) => {
+            expect(processArgs.getParent()?.getParent()).toBe(args);
+            expect(processArgs.get('testArgument')).toEqual('test-argument-value');
+            expect(processArgs.get('pre-configure-option')).toEqual('test1');
+            expect(processArgs.get('post-configure-option')).toEqual('test2');
+            expect(env).toEqual('test');
+            expect(signal).toEqual(SIGNAL.SUCCESS_SHUTDOWN);
+            expect(payload).toEqual({});
+          },
+        );
+
+        postTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getEnv()).toEqual('test');
+          expect(event.getProcess()).toBe(otherTestProcess);
+          expect(event.getSignal()).toEqual(SIGNAL.SUCCESS_SHUTDOWN);
+          expect(event.getSignalPayload()).toEqual({});
+          expect(event.getArgs()).toBeInstanceOf(Arguments);
+          expect(
+            event
+              .getArgs()
+              .getParent()
+              ?.getParent(),
+          ).toBe(args);
+          expect(event.getArgs().get('testArgument')).toEqual('test-argument-value');
+          expect(event.getArgs().get('pre-configure-option')).toEqual('test1');
+          expect(event.getArgs().get('post-configure-option')).toEqual('test2');
+        });
+
+        await module.handleRun(event);
+
+        expect(configureSpy).toHaveBeenCalledTimes(1);
+        expect(executeSpy).toHaveBeenCalledTimes(1);
+        expect(terminateSpy).toHaveBeenCalledTimes(1);
+
+        expect(preConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(postConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(preExecuteHandler).toHaveBeenCalledTimes(1);
+        expect(preTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(postTerminateHandler).toHaveBeenCalledTimes(1);
+
+        expect(process.exit).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledWith(0);
       });
 
-      describe('With a non existing process name', () => {
-        it('should not run any process and stop the execution of the script', () => {
-          jest.spyOn(process, 'exit').mockReturnValue(undefined as never);
-          jest.spyOn(console, 'error').mockReturnValue(undefined);
-
-          pmm.onInit(
-            Arguments.create({}, ['unknown-process']),
-            'test',
-            pc,
-            INITIALIZATION_CONTEXT.RUN,
-          );
-
-          const initEventHandler = eventManagerMock.on.mock.calls[0][1];
-          eventManagerMock.on.mockClear();
-
-          initEventHandler();
-
-          expect(eventManagerMock.on).not.toHaveBeenCalled();
-          expect(registerServicesMock).not.toHaveBeenCalled();
-          expect(configureMock).not.toHaveBeenCalled();
-          expect(executeMock).not.toHaveBeenCalled();
-
-          expect(process.exit).toHaveBeenCalledWith(1);
-          expect(console.error).toHaveBeenCalled();
+      it('should run the process corresponding to provided name in the arguments and exit with error if the "execute" method returns false', async () => {
+        const args = Arguments.create({}, ['test-process', 'test-argument-value']);
+        const event = new LifeCycleRunEvent(RUN_EVENTS.RUN, {
+          serviceContainer,
+          args,
+          env: 'test',
         });
+
+        executeSpy.mockResolvedValueOnce(false);
+
+        preTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.FAILURE_SHUTDOWN);
+          expect(event.getSignalPayload()).toEqual({});
+        });
+
+        postTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.FAILURE_SHUTDOWN);
+          expect(event.getSignalPayload()).toEqual({});
+        });
+
+        await module.handleRun(event);
+
+        expect(configureSpy).toHaveBeenCalledTimes(1);
+        expect(executeSpy).toHaveBeenCalledTimes(1);
+        expect(terminateSpy).toHaveBeenCalledTimes(1);
+
+        expect(preConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(postConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(preExecuteHandler).toHaveBeenCalledTimes(1);
+        expect(preTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(postTerminateHandler).toHaveBeenCalledTimes(1);
+
+        expect(process.exit).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledWith(1);
       });
 
-      describe('Not in an "RUN" initialization context', () => {
-        it('should not listen to INIT_EVENTS.INIT', () => {
-          pmm.onInit(
-            Arguments.create({}, ['test-process']),
-            'test',
-            pc,
-            INITIALIZATION_CONTEXT.BUILD,
-          );
-
-          expect(eventManagerMock.on).not.toHaveBeenCalled();
-
-          pmm.onInit(
-            Arguments.create({}, ['test-process']),
-            'test',
-            pc,
-            INITIALIZATION_CONTEXT.INSTALL,
-          );
-
-          expect(eventManagerMock.on).not.toHaveBeenCalled();
+      it("should not do anything if there's no process corresponding to the name in the arguments", async () => {
+        const args = Arguments.create({}, ['unknown-process', 'test-argument-value']);
+        const event = new LifeCycleRunEvent(RUN_EVENTS.RUN, {
+          serviceContainer,
+          args,
+          env: 'test',
         });
+
+        await module.handleRun(event);
+
+        expect(configureSpy).not.toHaveBeenCalled();
+        expect(executeSpy).not.toHaveBeenCalled();
+        expect(terminateSpy).not.toHaveBeenCalled();
+        expect(terminateSpy).not.toHaveBeenCalled();
+
+        expect(preConfigureHandler).not.toHaveBeenCalled();
+        expect(postConfigureHandler).not.toHaveBeenCalled();
+        expect(preExecuteHandler).not.toHaveBeenCalled();
+        expect(preTerminateHandler).not.toHaveBeenCalled();
+        expect(postTerminateHandler).not.toHaveBeenCalled();
+
+        expect(process.exit).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledWith(1);
+      });
+
+      it('should terminate the process in case of SIGINT', async () => {
+        const args = Arguments.create({}, ['test-process', 'test-argument-value']);
+        const event = new LifeCycleRunEvent(RUN_EVENTS.RUN, {
+          serviceContainer,
+          args,
+          env: 'test',
+        });
+
+        await module.handleRun(event);
+
+        expect(preConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(postConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(preExecuteHandler).toHaveBeenCalledTimes(1);
+
+        jest.clearAllMocks();
+
+        preTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.SIGINT);
+          expect(event.getSignalPayload()).toEqual({});
+        });
+
+        postTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.SIGINT);
+          expect(event.getSignalPayload()).toEqual({});
+        });
+
+        process.emit('SIGINT', 'SIGINT');
+        await waitForNextTick();
+
+        expect(preTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(postTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledWith(0);
+      });
+
+      it('should terminate the process in case of SIGTERM', async () => {
+        const args = Arguments.create({}, ['test-process', 'test-argument-value']);
+        const event = new LifeCycleRunEvent(RUN_EVENTS.RUN, {
+          serviceContainer,
+          args,
+          env: 'test',
+        });
+
+        await module.handleRun(event);
+
+        expect(preConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(postConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(preExecuteHandler).toHaveBeenCalledTimes(1);
+
+        jest.clearAllMocks();
+
+        preTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.SIGTERM);
+          expect(event.getSignalPayload()).toEqual({});
+        });
+
+        postTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.SIGTERM);
+          expect(event.getSignalPayload()).toEqual({});
+        });
+
+        process.emit('SIGTERM', 'SIGTERM');
+        await waitForNextTick();
+
+        expect(preTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(postTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledWith(0);
+      });
+
+      it('should terminate the process in case of uncaughtException', async () => {
+        const args = Arguments.create({}, ['test-process', 'test-argument-value']);
+        const event = new LifeCycleRunEvent(RUN_EVENTS.RUN, {
+          serviceContainer,
+          args,
+          env: 'test',
+        });
+
+        await module.handleRun(event);
+
+        expect(preConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(postConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(preExecuteHandler).toHaveBeenCalledTimes(1);
+
+        jest.clearAllMocks();
+
+        const error = new Error();
+
+        preTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.UNCAUGHT_EXCEPTION);
+          expect(event.getSignalPayload()).toEqual({ error });
+        });
+
+        postTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.UNCAUGHT_EXCEPTION);
+          expect(event.getSignalPayload()).toEqual({ error });
+        });
+
+        process.emit('uncaughtException', error);
+        await waitForNextTick();
+
+        expect(preTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(postTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledWith(1);
+      });
+
+      it('should terminate the process in case of unhandledRejection', async () => {
+        const args = Arguments.create({}, ['test-process', 'test-argument-value']);
+        const event = new LifeCycleRunEvent(RUN_EVENTS.RUN, {
+          serviceContainer,
+          args,
+          env: 'test',
+        });
+
+        await module.handleRun(event);
+
+        expect(preConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(postConfigureHandler).toHaveBeenCalledTimes(1);
+        expect(preExecuteHandler).toHaveBeenCalledTimes(1);
+
+        jest.clearAllMocks();
+
+        const error = new Error();
+        const promise = Promise.reject(error);
+
+        preTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.UNHANDLED_REJECTION);
+          expect(event.getSignalPayload()).toEqual({ reason: error, promise });
+        });
+
+        postTerminateHandler.mockImplementationOnce((event: PreTerminateEvent) => {
+          expect(event.getSignal()).toEqual(SIGNAL.UNHANDLED_REJECTION);
+          expect(event.getSignalPayload()).toEqual({ reason: error, promise });
+        });
+
+        process.emit('unhandledRejection', error, promise);
+        await waitForNextTick();
+
+        expect(preTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(postTerminateHandler).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenCalledWith(1);
       });
     });
   });

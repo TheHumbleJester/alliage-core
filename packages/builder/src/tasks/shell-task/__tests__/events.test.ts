@@ -1,10 +1,12 @@
 import { ExecException } from 'child_process';
+
 import {
   BUILDER_SHELL_TASK_EVENTS,
   ShellTaskBeforeRunEvent,
   ShellTaskSuccessEvent,
   ShellTaskErrorEvent,
 } from '../events';
+import { CommandError } from '..';
 
 describe('builder/tasks/shell-tasks/events', () => {
   describe('ShellTaskBeforeRunEvent', () => {
@@ -31,7 +33,7 @@ describe('builder/tasks/shell-tasks/events', () => {
   });
 
   describe('ShellTaskSuccessEvent', () => {
-    const event = new ShellTaskSuccessEvent('test_cmd', 'test_output');
+    const event = new ShellTaskSuccessEvent('test_cmd', 'test_success_output', 'test_error_output');
 
     describe('#getType', () => {
       it('should return a BUILDER_SHELL_TASK_EVENTS.SUCCESS event type', () => {
@@ -45,9 +47,15 @@ describe('builder/tasks/shell-tasks/events', () => {
       });
     });
 
-    describe('#getOutput', () => {
-      it('should return the ouput', () => {
-        expect(event.getOutput()).toEqual('test_output');
+    describe('#getSuccessOutput', () => {
+      it('should return the success ouput', () => {
+        expect(event.getSuccessOutput()).toEqual('test_success_output');
+      });
+    });
+
+    describe('#getErrorOutput', () => {
+      it('should return the error ouput', () => {
+        expect(event.getErrorOutput()).toEqual('test_error_output');
       });
     });
 
@@ -55,20 +63,22 @@ describe('builder/tasks/shell-tasks/events', () => {
       it('should return the parameters ready to be sent to the emit method of the EventManager', () => {
         const [type, eventInstance] = ShellTaskSuccessEvent.getParams(
           'test_cmd',
-          'test_output',
+          'test_success_output',
+          'test_error_output',
         ) as [BUILDER_SHELL_TASK_EVENTS, ShellTaskSuccessEvent];
 
         expect(type).toEqual(BUILDER_SHELL_TASK_EVENTS.SUCCESS);
         expect(eventInstance).toBeInstanceOf(ShellTaskSuccessEvent);
         expect(eventInstance.getCommand()).toEqual('test_cmd');
-        expect(eventInstance.getOutput()).toEqual('test_output');
+        expect(eventInstance.getSuccessOutput()).toEqual('test_success_output');
+        expect(eventInstance.getErrorOutput()).toEqual('test_error_output');
       });
     });
   });
 
   describe('ShellTaskErrorEvent', () => {
-    const error = new Error() as ExecException;
-    const event = new ShellTaskErrorEvent('test_cmd', 'test_output', error);
+    const error = new CommandError(new Error() as ExecException, 'test_stdout', 'test_stderr');
+    const event = new ShellTaskErrorEvent('test_cmd', error);
 
     describe('#getType', () => {
       it('should return a BUILDER_SHELL_TASK_EVENTS.ERROR event type', () => {
@@ -82,15 +92,9 @@ describe('builder/tasks/shell-tasks/events', () => {
       });
     });
 
-    describe('#getOutput', () => {
+    describe('#getError', () => {
       it('should return the output', () => {
-        expect(event.getOutput()).toEqual('test_output');
-      });
-    });
-
-    describe('#getException', () => {
-      it('should return the exception', () => {
-        expect(event.getException()).toBe(error);
+        expect(event.getError()).toBe(error);
       });
     });
 
@@ -98,15 +102,13 @@ describe('builder/tasks/shell-tasks/events', () => {
       it('should return the parameters ready to be sent to the emit method of the EventManager', () => {
         const [type, eventInstance] = ShellTaskErrorEvent.getParams(
           'test_cmd',
-          'test_output',
           error,
         ) as [BUILDER_SHELL_TASK_EVENTS, ShellTaskErrorEvent];
 
         expect(type).toEqual(BUILDER_SHELL_TASK_EVENTS.ERROR);
         expect(eventInstance).toBeInstanceOf(ShellTaskErrorEvent);
         expect(eventInstance.getCommand()).toEqual('test_cmd');
-        expect(eventInstance.getOutput()).toEqual('test_output');
-        expect(eventInstance.getException()).toBe(error);
+        expect(eventInstance.getError()).toBe(error);
       });
     });
   });

@@ -11,6 +11,19 @@ export interface Params {
   cmd: string;
 }
 
+export class CommandError extends Error {
+  public stdout: string;
+  public stderr: string;
+  public error: ExecException;
+
+  constructor(error: ExecException, stdout: string, stderr: string) {
+    super(error.message);
+    this.error = error;
+    this.stderr = stderr;
+    this.stdout = stdout;
+  }
+}
+
 export class ShellTask extends AbstractTask {
   private eventManager: EventManager;
 
@@ -42,10 +55,11 @@ export class ShellTask extends AbstractTask {
 
       exec(cmd, (error: ExecException | null, stdout: string, stderr: string) => {
         if (error) {
-          this.eventManager.emit(...ShellTaskErrorEvent.getParams(cmd, stderr, error));
-          reject(error);
+          const exception = new CommandError(error, stdout, stderr);
+          this.eventManager.emit(...ShellTaskErrorEvent.getParams(cmd, exception));
+          reject(exception);
         } else {
-          this.eventManager.emit(...ShellTaskSuccessEvent.getParams(cmd, stdout));
+          this.eventManager.emit(...ShellTaskSuccessEvent.getParams(cmd, stdout, stderr));
           resolve();
         }
       });

@@ -1,6 +1,6 @@
 {
   "name": "alliage-module-installer",
-  "version": "0.0.1",
+  "version": "0.0.1-pre1",
   "description": "Module installer module for alliage",
   "main": "index.js",
   "scripts": {

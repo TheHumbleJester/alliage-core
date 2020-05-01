@@ -1,6 +1,6 @@
 {
   "name": "alliage-di",
-  "version": "0.0.1",
+  "version": "0.0.1-pre1",
   "description": "Dependency injection module for Alliage",
   "main": "index.js",
   "scripts": {

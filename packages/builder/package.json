@@ -1,6 +1,6 @@
 {
   "name": "alliage-builder",
-  "version": "0.0.1",
+  "version": "0.0.1-pre1",
   "description": "Builder module for Alliage",
   "main": "index.js",
   "scripts": {

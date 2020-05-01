@@ -39,7 +39,7 @@ describe('service-loader', () => {
 
         expect(module.getEventHandlers()).toEqual({
           [CONFIG_EVENTS.LOAD]: loadConfigMockReturnValue,
-          [INIT_EVENTS.POST_INIT]: module.handlePostInit,
+          [INIT_EVENTS.INIT]: module.handleInit,
         });
 
         expect(validate).toHaveBeenCalledWith(schema);
@@ -47,7 +47,7 @@ describe('service-loader', () => {
       });
     });
 
-    describe('#handlePostInit', () => {
+    describe('#handleInit', () => {
       const eventManager = new EventManager();
       const serviceContainer = new ServiceContainer();
 
@@ -76,7 +76,7 @@ describe('service-loader', () => {
         jest.resetModules();
       });
 
-      const initEvent = new LifeCycleInitEvent(INIT_EVENTS.POST_INIT, {
+      const initEvent = new LifeCycleInitEvent(INIT_EVENTS.INIT, {
         env: 'test',
         context: INITIALIZATION_CONTEXT.RUN,
         serviceContainer,
@@ -125,7 +125,7 @@ describe('service-loader', () => {
           expect(event.getExclude()).toEqual(['overriden/**/__tests__/**']);
         });
 
-        await module.handlePostInit(initEvent);
+        await module.handleInit(initEvent);
 
         expect(registerServiceSpy).toHaveBeenCalledTimes(1);
         expect(registerServiceSpy).toHaveBeenCalledWith('dummy_service', OverridenDummyService, [
@@ -153,7 +153,7 @@ describe('service-loader', () => {
 
         jest.doMock('/path/to/src/services/dummy-service', () => DummyService, { virtual: true });
 
-        await module.handlePostInit(initEvent);
+        await module.handleInit(initEvent);
 
         expect(registerServiceSpy).not.toHaveBeenCalled();
 
@@ -168,7 +168,7 @@ describe('service-loader', () => {
 
         jest.doMock('/path/to/src/services/dummy-service', () => null, { virtual: true });
 
-        await module.handlePostInit(initEvent);
+        await module.handleInit(initEvent);
 
         expect(registerServiceSpy).not.toHaveBeenCalled();
 
@@ -187,7 +187,7 @@ describe('service-loader', () => {
 
         jest.doMock('/path/to/src/services/dummy-service', () => DummyService, { virtual: true });
 
-        await module.handlePostInit(initEvent);
+        await module.handleInit(initEvent);
 
         expect(registerServiceSpy).toHaveBeenCalledTimes(1);
         expect(registerServiceSpy).toHaveBeenCalledWith('other_dummy_service', DummyService, [

@@ -1,9 +1,17 @@
+import { INITIALIZATION_CONTEXT } from 'alliage/core/kernel';
+import { Arguments } from 'alliage/core/utils/cli';
+
 import { PrimitiveContainer } from 'alliage/core/primitive-container';
 import { ServiceContainer } from 'alliage-di/service-container';
 
-import { Arguments } from 'alliage/core/utils/cli';
 import { AbstractLifeCycleAwareModule } from '../module';
-import { INIT_EVENTS, INSTALL_EVENTS, BUILD_EVENTS, RUN_EVENTS } from '../events';
+import {
+  INIT_EVENTS,
+  INSTALL_EVENTS,
+  BUILD_EVENTS,
+  RUN_EVENTS,
+  LifeCycleInitEvent,
+} from '../events';
 
 describe('lifecycle/module', () => {
   describe('AbstractLifeCycleAwareModule', () => {
@@ -21,7 +29,7 @@ describe('lifecycle/module', () => {
           [BUILD_EVENTS.BUILD]: fakeEventHandler,
           [RUN_EVENTS.RUN]: fakeEventHandler,
           [RUN_EVENTS.POST_RUN]: undefined,
-        };
+        } as any;
       }
     }
 
@@ -54,8 +62,16 @@ describe('lifecycle/module', () => {
           [RUN_EVENTS.RUN, fakeEventHandler],
         ]);
 
-        eventManagerMock.on.mock.calls[0][1]();
+        const preInitEvent = new LifeCycleInitEvent(INIT_EVENTS.PRE_INIT, {
+          context: INITIALIZATION_CONTEXT.RUN,
+          env: 'test',
+          serviceContainer: sc,
+          args: Arguments.create(),
+        });
+
+        eventManagerMock.on.mock.calls[0][1](preInitEvent);
         expect(registerServicesMock).toHaveBeenCalledTimes(1);
+        expect(registerServicesMock).toHaveBeenCalledWith(sc);
       });
     });
 
