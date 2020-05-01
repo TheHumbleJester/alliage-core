@@ -8,6 +8,7 @@ import { Constructor, service } from 'alliage-di/dependencies';
 import { ModulesDefinition } from 'alliage/core/script';
 import { AbstractLifeCycleAwareModule } from 'alliage-lifecycle/module';
 import { INSTALL_EVENTS, LifeCycleInstallEvent } from 'alliage-lifecycle/events';
+import { EventManager } from 'alliage-lifecycle/event-manager';
 
 import { validate, MODULE_TYPE } from './schemas/manifest';
 import { FileCopyInstallationProcedure, PROCEDURE_NAME } from './installation-procedure/file-copy';
@@ -19,7 +20,6 @@ import {
   InstallationPhaseStartEvent,
   InstallationPhaseEndEvent,
 } from './events';
-import { EventManager } from '../../lifecycle/src/event-manager';
 
 const LOCAL_MODULE_PATTERN = /^\.{0,2}(\/.*)+$/;
 const MODULES_DEFINITION_PATH = './alliage-modules.json';

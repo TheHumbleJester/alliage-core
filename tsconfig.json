@@ -15,7 +15,10 @@
       ],
       "alliage-config-loader/*": [
         "configuration-loader/src/*"
-      ]
+      ],
+      "alliage-service-loader/*": [
+        "service-loader/src/*"
+      ],
     }
   },
   "exclude": [],

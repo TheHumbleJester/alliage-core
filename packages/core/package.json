@@ -22,7 +22,7 @@
       "alliage-module-installer",
       "alliage-builder",
       "alliage-service-loader",
-      "alliage-parameter-loader"
+      "alliage-parameters-loader"
     ]
   }
 }

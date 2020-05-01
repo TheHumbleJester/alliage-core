@@ -1,6 +1,6 @@
 import { Arguments, CommandBuilder } from 'alliage/core/utils/cli';
 
-import { ServiceContainer } from '../../dependency-injection/src/service-container';
+import { ServiceContainer } from 'alliage-di/service-container';
 
 export enum SIGNAL {
   SIGTERM = '@process-manager/SIGNAL/SIGTERM',

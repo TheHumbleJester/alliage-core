@@ -2,15 +2,13 @@
   "name": "alliage-core",
   "private": true,
   "scripts": {
-    "build": "rm -rf ./dist && tsc -p tsconfig.json",
+    "build": "sh scripts/build.sh",
     "lint": "eslint . --ext .js --ext .ts",
     "lint:fix": "yarn lint --silent -- --fix",
     "test:unit": "NODE_ENV=test jest --maxWorkers=2 --coverage",
-    "test": "yarn lint && yarn test:unit",
-    "release": "node scripts/release",
-    "alliage:run": "alliage-scripts run",
-    "alliage:build": "alliage-scripts build",
-    "alliage:install": "alliage-scripts install"
+    "test:integration": "yarn build && NODE_ENV=test jest --maxWorkers=2 --config=./integration-tests/jest.config.js",
+    "test": "yarn lint && yarn test:unit && test:integration",
+    "release": "node scripts/release"
   },
   "devDependencies": {
     "@types/jest": "^24.0.6",

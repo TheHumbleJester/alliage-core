@@ -54,4 +54,4 @@ temp/
 .DS_Store
 
 .vscode
-alliage-modules.json
+/alliage-modules.json

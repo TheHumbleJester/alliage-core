@@ -1,0 +1,16 @@
+{
+  "copyFiles": [
+    "<scenarioRoot>/src",
+    "<scenarioRoot>/config",
+    "<scenarioRoot>/alliage-modules.json"
+  ],
+  "linkModules": {
+    "alliage-di": "<projectRoot>/packages/dependency-injection/dist",
+    "alliage-lifecycle": "<projectRoot>/packages/lifecycle/dist",
+    "alliage-process-manager": "<projectRoot>/packages/process-manager/dist",
+    "alliage-config-loader": "<projectRoot>/packages/configuration-loader/dist",
+    "alliage-module-installer": "<projectRoot>/packages/module-installer/dist",
+    "alliage-service-loader": "<projectRoot>/packages/service-loader/dist",
+    "alliage-parameters-loader": "<projectRoot>/packages/parameters-loader/dist"
+  }
+}

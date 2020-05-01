@@ -29,7 +29,7 @@
         "esModuleInterop": true,
         /* Advanced Options */
         "resolveJsonModule": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
     },
     "exclude": [
         "**/__tests__/**",
