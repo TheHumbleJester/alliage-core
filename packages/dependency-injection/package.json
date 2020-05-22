@@ -1,0 +1,23 @@
+{
+  "name": "alliage-di",
+  "version": "0.0.1-pre1",
+  "description": "Dependency injection module for Alliage",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheHumbleJester/alliage-core.git"
+  },
+  "author": "the.humble.jester@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheHumbleJester/alliage-core/issues"
+  },
+  "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
+  "alliageManifest": {
+    "type": "module",
+    "dependencies": []
+  }
+}

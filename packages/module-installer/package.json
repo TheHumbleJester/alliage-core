@@ -1,0 +1,34 @@
+{
+  "name": "alliage-module-installer",
+  "version": "0.0.1-pre1",
+  "description": "Module installer module for alliage",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheHumbleJester/alliage-core.git"
+  },
+  "author": "the.humble.jester@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheHumbleJester/alliage-core/issues"
+  },
+  "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
+  "alliageManifest": {
+    "type": "module",
+    "dependencies": [
+      "alliage-lifecycle"
+    ]
+  },
+  "dependencies": {
+    "ajv": "^6.12.0",
+    "fs-extra": "^9.0.0",
+    "glob": "^7.1.6"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^8.1.0",
+    "@types/glob": "^7.1.1"
+  }
+}

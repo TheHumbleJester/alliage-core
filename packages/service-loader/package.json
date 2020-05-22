@@ -1,0 +1,42 @@
+{
+  "name": "alliage-service-loader",
+  "version": "0.0.1-pre1",
+  "description": "Service loader module for Alliage",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheHumbleJester/alliage-core.git"
+  },
+  "author": "the.humble.jester@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheHumbleJester/alliage-core/issues"
+  },
+  "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
+  "alliageManifest": {
+    "type": "module",
+    "dependencies": [
+      "alliage-lifecycle",
+      "alliage-di",
+      "alliage-module-installer",
+      "alliage-config-loader"
+    ],
+    "installationProcedures": {
+      "copyFiles": [
+        [
+          "base-files/config.yaml",
+          "config/services.yaml"
+        ]
+      ]
+    }
+  },
+  "dependencies": {
+    "glob": "^7.1.6"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.1"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "alliage-process-manager",
+  "version": "0.0.1-pre1",
+  "description": "Process manager module for Alliage",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheHumbleJester/alliage-core.git"
+  },
+  "author": "the.humble.jester@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheHumbleJester/alliage-core/issues"
+  },
+  "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
+  "alliageManifest": {
+    "type": "module",
+    "dependencies": [
+      "alliage-di",
+      "alliage-lifecycle",
+      "alliage-service-loader",
+      "alliage-config-loader"
+    ]
+  }
+}

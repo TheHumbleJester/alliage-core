@@ -1,0 +1,4 @@
+{
+  "test-module": "/path/to/test-module/index.js",
+  "already-installed-module": "/path/to/already-installed-module/index.js"
+}
