@@ -1,6 +1,6 @@
 {
   "name": "alliage-module-installer",
-  "version": "0.0.1-pre1",
+  "version": "0.0.1",
   "description": "Module installer module for alliage",
   "main": "index.js",
   "scripts": {
@@ -30,5 +30,9 @@
   "devDependencies": {
     "@types/fs-extra": "^8.1.0",
     "@types/glob": "^7.1.1"
+  },
+  "peerDependencies": {
+    "alliage": "~0.0.1",
+    "alliage-lifecycle": "~0.0.1"
   }
 }
