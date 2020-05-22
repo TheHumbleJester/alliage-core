@@ -1,6 +1,6 @@
 {
   "name": "alliage-builder",
-  "version": "0.0.1-pre1",
+  "version": "0.0.1",
   "description": "Builder module for Alliage",
   "main": "index.js",
   "scripts": {
@@ -31,5 +31,11 @@
         ]
       ]
     }
+  },
+  "peerDependencies": {
+    "alliage": "~0.0.1",
+    "alliage-lifecycle": "~0.0.1",
+    "alliage-config-loader": "~0.0.1",
+    "alliage-module-installer": "~0.0.1"
   }
 }

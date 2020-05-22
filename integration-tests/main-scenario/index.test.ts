@@ -32,32 +32,32 @@ describe('Main scenario', () => {
     ).toEqual({
       'alliage-builder': {
         deps: ['alliage-lifecycle', 'alliage-config-loader', 'alliage-module-installer'],
-        hash: '92aa5725fb071ba9520b40520617cb62',
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-builder',
       },
       'alliage-config-loader': {
         deps: ['alliage-lifecycle'],
-        hash: '92aa5725fb071ba9520b40520617cb62',
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-config-loader',
       },
       'alliage-di': {
         deps: [],
-        hash: '92aa5725fb071ba9520b40520617cb62',
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-di',
       },
       'alliage-lifecycle': {
         deps: ['alliage-di'],
-        hash: '92aa5725fb071ba9520b40520617cb62',
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-lifecycle',
       },
       'alliage-module-installer': {
         deps: ['alliage-lifecycle'],
-        hash: '92aa5725fb071ba9520b40520617cb62',
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-module-installer',
       },
       'alliage-parameters-loader': {
         deps: ['alliage-lifecycle', 'alliage-di', 'alliage-module-installer'],
-        hash: '92aa5725fb071ba9520b40520617cb62',
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-parameters-loader',
       },
       'alliage-process-manager': {
@@ -67,7 +67,7 @@ describe('Main scenario', () => {
           'alliage-service-loader',
           'alliage-config-loader',
         ],
-        hash: '92aa5725fb071ba9520b40520617cb62',
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-process-manager',
       },
       'alliage-service-loader': {
@@ -77,7 +77,7 @@ describe('Main scenario', () => {
           'alliage-module-installer',
           'alliage-config-loader',
         ],
-        hash: '92aa5725fb071ba9520b40520617cb62',
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-service-loader',
       },
     });
