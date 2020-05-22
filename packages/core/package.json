@@ -1,6 +1,6 @@
 {
   "name": "alliage-core",
-  "version": "0.0.1-pre1",
+  "version": "0.0.1",
   "description": "Core features compound for Alliage",
   "repository": {
     "type": "git",
@@ -24,5 +24,18 @@
       "alliage-parameters-loader",
       "alliage-process-manager"
     ]
+  },
+  "peerDependencies": {
+    "alliage": "~0.0.1"
+  },
+  "dependencies": {
+    "alliage-di": "~0.0.1",
+    "alliage-lifecycle": "~0.0.1",
+    "alliage-config-loader": "~0.0.1",
+    "alliage-module-installer": "~0.0.1",
+    "alliage-builder": "~0.0.1",
+    "alliage-service-loader": "~0.0.1",
+    "alliage-parameters-loader": "~0.0.1",
+    "alliage-process-manager": "~0.0.1"
   }
 }

@@ -6,12 +6,12 @@ $(npm bin)/lerna version --no-push --no-git-tag-version "$version" -m "Upgrade t
 for f in packages/*; do
   if [ -d "$f" ] && [ -e "$f/package.json" ]; then
     cd "$f"
-
-    for dep in `"$packageProperty" alliageManifest.dependencies`; do
-      "$setPackageValue" "peerDependencies.alliage" "~$version"
-      "$setPackageValue" "peerDependencies.$dep" "~$version"
+    name=$("$packageProperty" name)
+    [[ $name = "alliage-core" ]] && depType="dependencies" || depType="peerDependencies"
+    "$setPackageValue" "peerDependencies.alliage" "~$version"
+    for dep in $("$packageProperty" alliageManifest.dependencies); do
+      "$setPackageValue" "$depType.$dep" "~$version"
     done
-
     cd - >/dev/null
   fi
 done
