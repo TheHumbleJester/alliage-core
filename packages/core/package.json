@@ -1,0 +1,28 @@
+{
+  "name": "alliage-core",
+  "version": "0.0.1-pre1",
+  "description": "Core features compound for Alliage",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheHumbleJester/alliage-core.git"
+  },
+  "author": "the.humble.jester@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheHumbleJester/alliage-core/issues"
+  },
+  "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
+  "alliageManifest": {
+    "type": "compound",
+    "dependencies": [
+      "alliage-di",
+      "alliage-lifecycle",
+      "alliage-config-loader",
+      "alliage-module-installer",
+      "alliage-builder",
+      "alliage-service-loader",
+      "alliage-parameters-loader",
+      "alliage-process-manager"
+    ]
+  }
+}

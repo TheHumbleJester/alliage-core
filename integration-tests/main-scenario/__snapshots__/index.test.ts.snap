@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Main scenario should install correctly all the modules by updating the alliage-modules.json and copying the configuration files 1`] = `
+"tasks: []
+"
+`;
+
+exports[`Main scenario should install correctly all the modules by updating the alliage-modules.json and copying the configuration files 2`] = `
+"basePath: 'src'
+paths: [
+  'services/**/*'
+]"
+`;

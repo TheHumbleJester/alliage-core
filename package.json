@@ -1,0 +1,45 @@
+{
+  "name": "alliage-core",
+  "private": true,
+  "scripts": {
+    "build": "sh scripts/build.sh",
+    "lint": "eslint . --ext .js --ext .ts",
+    "lint:fix": "yarn lint --silent -- --fix",
+    "test:unit": "NODE_ENV=test jest --maxWorkers=2 --coverage",
+    "test:integration": "NODE_ENV=test jest --maxWorkers=2 --rootDir=. -c ./integration-tests/jest.config.js",
+    "test": "yarn lint && yarn test:unit && yarn build && yarn test:integration",
+    "upgrade-version": "sh scripts/upgrade-version.sh",
+    "release": "sh scripts/release.sh",
+    "sandbox": "ts-node test-utils/sandbox/index.ts"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "8.1.0",
+    "@types/jest": "^24.0.6",
+    "@types/node": "^13.1.6",
+    "@types/yaml": "^1.2.0",
+    "@types/yargs": "^15.0.0",
+    "@typescript-eslint/eslint-plugin": "^2.9.0",
+    "@typescript-eslint/parser": "^2.9.0",
+    "@typescript-eslint/typescript-estree": "^2.9.0",
+    "alliage-sandbox": "^0.0.1",
+    "cicd-cli-tools": "^0.2.0",
+    "eslint": "^6.7.1",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-prettier": "^3.1.1",
+    "jest": "^24.1.0",
+    "lerna": "^3.21.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^24.0.0",
+    "ts-node": "8.9.1",
+    "typescript": "^3.7.4"
+  },
+  "dependencies": {
+    "alliage": "0.0.1-pre.10",
+    "fs-extra": "9.0.0",
+    "glob": "^7.1.6",
+    "yaml": "^1.9.2"
+  }
+}
