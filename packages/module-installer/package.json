@@ -20,6 +20,9 @@
     "type": "module",
     "dependencies": [
       "alliage-lifecycle"
+    ],
+    "environments": [
+      "development"
     ]
   },
   "dependencies": {

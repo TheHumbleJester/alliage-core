@@ -246,7 +246,7 @@ describe('module-installer', () => {
 
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer,
-          args: Arguments.create({ moduleName: 'test-module' }),
+          args: Arguments.create({}, ['test-module']),
           env: 'test',
         });
 
@@ -321,7 +321,7 @@ describe('module-installer', () => {
 
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer: scWithProcedure,
-          args: Arguments.create({ moduleName: 'test-module' }, ['procedures,registration']),
+          args: Arguments.create({}, ['test-module', 'procedures,registration']),
           env: 'test',
         });
 
@@ -383,7 +383,7 @@ describe('module-installer', () => {
 
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer: scWithProcedure,
-          args: Arguments.create({ moduleName: 'test-module' }, ['procedures,registration']),
+          args: Arguments.create({}, ['test-module', 'procedures,registration']),
           env: 'test',
         });
 
@@ -431,7 +431,7 @@ describe('module-installer', () => {
 
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer,
-          args: Arguments.create({ moduleName: 'test-module' }, ['registration']),
+          args: Arguments.create({}, ['test-module', 'registration']),
           env: 'test',
         });
 
@@ -455,6 +455,7 @@ describe('module-installer', () => {
               'test-module': {
                 module: 'test-module',
                 deps: ['module1', 'module2'],
+                envs: [],
                 hash: '25e64aa754c310d45c1e084d574c1bb0',
               },
             },
@@ -481,7 +482,7 @@ describe('module-installer', () => {
 
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer,
-          args: Arguments.create({ moduleName: 'test-module' }, ['registration']),
+          args: Arguments.create({}, ['test-module', 'registration']),
           env: 'test',
         });
 
@@ -507,7 +508,7 @@ describe('module-installer', () => {
 
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer,
-          args: Arguments.create({ moduleName: 'test-module' }),
+          args: Arguments.create({}, ['test-module']),
           env: 'test',
         });
 
@@ -523,7 +524,7 @@ describe('module-installer', () => {
       it('should throw an error if the specified phase does not exist', async () => {
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer,
-          args: Arguments.create({ moduleName: 'test-module' }, ['unknown-phase']),
+          args: Arguments.create({}, ['test-module', 'unknown-phase']),
           env: 'test',
         });
 
@@ -571,7 +572,7 @@ describe('module-installer', () => {
         });
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer,
-          args: Arguments.create({ moduleName: 'test-module' }, ['registration']),
+          args: Arguments.create({}, ['test-module', 'registration']),
           env: 'test',
         });
 
@@ -611,7 +612,7 @@ describe('module-installer', () => {
 
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer,
-          args: Arguments.create({ moduleName: './test-module' }, ['dependencies']),
+          args: Arguments.create({}, ['./test-module', 'dependencies']),
           env: 'test',
         });
 
@@ -636,7 +637,7 @@ describe('module-installer', () => {
 
         const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
           serviceContainer,
-          args: Arguments.create({ moduleName: 'already-installed-module' }),
+          args: Arguments.create({}, ['already-installed-module']),
           env: 'test',
         });
 
