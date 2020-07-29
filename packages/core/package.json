@@ -22,7 +22,9 @@
       "alliage-builder",
       "alliage-service-loader",
       "alliage-parameters-loader",
-      "alliage-process-manager"
+      "alliage-process-manager",
+      "alliage-events-listener-loader",
+      "alliage-error-handler"
     ]
   },
   "peerDependencies": {

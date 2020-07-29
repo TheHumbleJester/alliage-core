@@ -88,6 +88,18 @@ describe('Main scenario', () => {
         envs: [],
         hash: '25e64aa754c310d45c1e084d574c1bb0',
       },
+      'alliage-events-listener-loader': {
+        deps: ['alliage-di', 'alliage-lifecycle'],
+        module: 'alliage-events-listener-loader',
+        envs: [],
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
+      },
+      'alliage-error-handler': {
+        deps: [],
+        envs: [],
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
+        module: 'alliage-error-handler',
+      },
     });
   });
 
@@ -95,13 +107,26 @@ describe('Main scenario', () => {
     const { waitCompletion, process: childProcess } = sandbox.run(['dummy-process', 'test']);
 
     let output = '';
-    // eslint-disable-next-line no-unused-expressions
-    childProcess.stdout?.on('data', (chunk) => {
+    childProcess.stdout!.on('data', (chunk) => {
       output += chunk;
     });
     await waitCompletion();
     expect(output).toEqual(
-      'Hello Alliage Core ! - test - production\nabout to shut down...\nshutting down with signal: @process-manager/SIGNAL/SUCCESS_SHUTDOWN\n',
+      'Test pre execute\nHello Alliage Core ! - test - production\nabout to shut down...\nTest pre terminate\nshutting down with signal: @process-manager/SIGNAL/SUCCESS_SHUTDOWN\n',
+    );
+  });
+
+  it('should display errors gracefully', async () => {
+    const { waitCompletion, process: childProcess } = sandbox.run(['error-process']);
+
+    let output = '';
+    childProcess.stderr!.on('data', (chunk) => {
+      output += chunk;
+    });
+    await waitCompletion();
+
+    expect(output).toMatch(
+      /^DummyError: A dummy error occured\nprop1:\ntest_prop1 \n\nprop2:\n\[ 'test_prop2-1', 'test_prop2-2' \] \n\nstack trace:\n.*$/gm,
     );
   });
 
@@ -121,8 +146,7 @@ tasks:
     const { waitCompletion, process: childProcess } = sandbox.build(['--env=development']);
 
     let output = '';
-    // eslint-disable-next-line no-unused-expressions
-    childProcess.stdout?.on('data', (chunk) => {
+    childProcess.stdout!.on('data', (chunk) => {
       output += chunk;
     });
     await waitCompletion();
