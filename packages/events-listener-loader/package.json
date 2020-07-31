@@ -1,6 +1,6 @@
 {
   "name": "alliage-events-listener-loader",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Events listener loader module for Alliage",
   "main": "index.js",
   "repository": {
@@ -13,11 +13,10 @@
     "url": "https://github.com/TheHumbleJester/alliage-core/issues"
   },
   "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
-  "dependencies": {},
   "peerDependencies": {
-    "alliage": "~0.0.1",
-    "alliage-di": "~0.0.1",
-    "alliage-lifecycle": "~0.0.1"
+    "alliage": "~1.0.0",
+    "alliage-di": "~1.0.0",
+    "alliage-lifecycle": "~1.0.0"
   },
   "alliageManifest": {
     "type": "module",

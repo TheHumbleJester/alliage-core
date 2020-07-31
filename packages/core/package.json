@@ -1,6 +1,6 @@
 {
   "name": "alliage-core",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Core features compound for Alliage",
   "repository": {
     "type": "git",
@@ -28,16 +28,18 @@
     ]
   },
   "peerDependencies": {
-    "alliage": "~0.0.1"
+    "alliage": "~1.0.0"
   },
   "dependencies": {
-    "alliage-di": "~0.0.1",
-    "alliage-lifecycle": "~0.0.1",
-    "alliage-config-loader": "~0.0.1",
-    "alliage-module-installer": "~0.0.1",
-    "alliage-builder": "~0.0.1",
-    "alliage-service-loader": "~0.0.1",
-    "alliage-parameters-loader": "~0.0.1",
-    "alliage-process-manager": "~0.0.1"
+    "alliage-builder": "~1.0.0",
+    "alliage-config-loader": "~1.0.0",
+    "alliage-di": "~1.0.0",
+    "alliage-lifecycle": "~1.0.0",
+    "alliage-module-installer": "~1.0.0",
+    "alliage-parameters-loader": "~1.0.0",
+    "alliage-process-manager": "~1.0.0",
+    "alliage-service-loader": "~1.0.0",
+    "alliage-events-listener-loader": "~1.0.0",
+    "alliage-error-handler": "~1.0.0"
   }
 }

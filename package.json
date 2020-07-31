@@ -37,7 +37,7 @@
     "typescript": "^3.7.4"
   },
   "dependencies": {
-    "alliage": "1.0.0-pre.1",
+    "alliage": "1.0.0",
     "fs-extra": "9.0.0",
     "glob": "^7.1.6",
     "yaml": "^1.9.2"
