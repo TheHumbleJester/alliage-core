@@ -1404,10 +1404,10 @@ alliage-sandbox@^0.0.1:
   dependencies:
     fs-extra "^9.0.0"
 
-alliage@1.0.0-pre.1:
-  version "1.0.0-pre.1"
-  resolved "https://registry.npmjs.org/alliage/-/alliage-1.0.0-pre.1.tgz#61f477bc333fea8fad2f7394991ebc5bacd19a6e"
-  integrity sha512-8b/aaAVWqPWNnrnqNwZMkupwO5utm6dntogUSOE5FxCeL1Q6t1X+jDra37gxlJmovgxgpBju+/6aBUkkqQefhA==
+alliage@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/alliage/-/alliage-1.0.0.tgz#ca5f1b2244298780082d4377775753eb5120657d"
+  integrity sha512-31e8UxYRPKPi/W1R+8YDPVeaPKyac+wA2kJabqh/9qza+v2Bjx7sZF3+fiSzJXapGUGUp8L5ZT/FLxXXFE5K5A==
   dependencies:
     yargs "^15.1.0"
 

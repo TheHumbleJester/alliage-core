@@ -1,6 +1,6 @@
 {
   "name": "alliage-lifecycle",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Lifecycle module for Alliage",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
     ]
   },
   "peerDependencies": {
-    "alliage": "~0.0.1",
-    "alliage-di": "~0.0.1"
+    "alliage": "~1.0.0",
+    "alliage-di": "~1.0.0"
   }
 }

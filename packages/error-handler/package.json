@@ -1,6 +1,6 @@
 {
   "name": "alliage-error-handler",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Error handler module for Alliage",
   "main": "index.js",
   "scripts": {
@@ -16,9 +16,8 @@
     "url": "https://github.com/TheHumbleJester/alliage-core/issues"
   },
   "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
-  "dependencies": {},
   "peerDependencies": {
-    "alliage": "~0.0.1"
+    "alliage": "~1.0.0"
   },
   "alliageManifest": {
     "type": "module",
