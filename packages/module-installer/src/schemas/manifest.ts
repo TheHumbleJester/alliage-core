@@ -21,11 +21,18 @@ export const schema = {
         type: 'string',
       },
     },
+    environments: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+    },
   },
 };
 
 export type Manifest<T = { [key: string]: any }> = {
   dependencies: string[];
+  environments?: string[];
   type: MODULE_TYPE;
   installationProcedures: T;
 };

@@ -15,7 +15,7 @@ describe('Main scenario', () => {
   });
 
   it('should install correctly all the modules by updating the alliage-modules.json and copying the configuration files', async () => {
-    const { waitCompletion } = await sandbox.install(['alliage-core']);
+    const { waitCompletion } = await sandbox.install(['alliage-core', '--env=development']);
 
     await waitCompletion();
 
@@ -30,55 +30,75 @@ describe('Main scenario', () => {
     expect(
       JSON.parse(fs.readFileSync(`${sandbox.getPath()}/alliage-modules.json`).toString()),
     ).toEqual({
-      'alliage-builder': {
-        deps: ['alliage-lifecycle', 'alliage-config-loader', 'alliage-module-installer'],
-        hash: '25e64aa754c310d45c1e084d574c1bb0',
-        module: 'alliage-builder',
-      },
-      'alliage-config-loader': {
-        deps: ['alliage-lifecycle'],
-        hash: '25e64aa754c310d45c1e084d574c1bb0',
-        module: 'alliage-config-loader',
-      },
-      'alliage-di': {
-        deps: [],
-        hash: '25e64aa754c310d45c1e084d574c1bb0',
-        module: 'alliage-di',
-      },
       'alliage-lifecycle': {
-        deps: ['alliage-di'],
-        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-lifecycle',
+        deps: ['alliage-di'],
+        envs: [],
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
       },
       'alliage-module-installer': {
-        deps: ['alliage-lifecycle'],
-        hash: '25e64aa754c310d45c1e084d574c1bb0',
         module: 'alliage-module-installer',
-      },
-      'alliage-parameters-loader': {
-        deps: ['alliage-lifecycle', 'alliage-di', 'alliage-module-installer'],
+        deps: ['alliage-lifecycle'],
+        envs: ['development'],
         hash: '25e64aa754c310d45c1e084d574c1bb0',
-        module: 'alliage-parameters-loader',
       },
-      'alliage-process-manager': {
-        deps: [
-          'alliage-di',
-          'alliage-lifecycle',
-          'alliage-service-loader',
-          'alliage-config-loader',
-        ],
+      'alliage-di': {
+        module: 'alliage-di',
+        deps: [],
+        envs: [],
         hash: '25e64aa754c310d45c1e084d574c1bb0',
-        module: 'alliage-process-manager',
+      },
+      'alliage-config-loader': {
+        module: 'alliage-config-loader',
+        deps: ['alliage-lifecycle'],
+        envs: [],
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
+      },
+      'alliage-builder': {
+        module: 'alliage-builder',
+        deps: ['alliage-lifecycle', 'alliage-config-loader', 'alliage-module-installer'],
+        envs: ['development'],
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
       },
       'alliage-service-loader': {
+        module: 'alliage-service-loader',
         deps: [
           'alliage-lifecycle',
           'alliage-di',
           'alliage-module-installer',
           'alliage-config-loader',
         ],
+        envs: [],
         hash: '25e64aa754c310d45c1e084d574c1bb0',
-        module: 'alliage-service-loader',
+      },
+      'alliage-parameters-loader': {
+        module: 'alliage-parameters-loader',
+        deps: ['alliage-lifecycle', 'alliage-di', 'alliage-module-installer'],
+        envs: [],
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
+      },
+      'alliage-process-manager': {
+        module: 'alliage-process-manager',
+        deps: [
+          'alliage-di',
+          'alliage-lifecycle',
+          'alliage-service-loader',
+          'alliage-config-loader',
+        ],
+        envs: [],
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
+      },
+      'alliage-events-listener-loader': {
+        deps: ['alliage-di', 'alliage-lifecycle'],
+        module: 'alliage-events-listener-loader',
+        envs: [],
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
+      },
+      'alliage-error-handler': {
+        deps: [],
+        envs: [],
+        hash: '25e64aa754c310d45c1e084d574c1bb0',
+        module: 'alliage-error-handler',
       },
     });
   });
@@ -87,13 +107,26 @@ describe('Main scenario', () => {
     const { waitCompletion, process: childProcess } = sandbox.run(['dummy-process', 'test']);
 
     let output = '';
-    // eslint-disable-next-line no-unused-expressions
-    childProcess.stdout?.on('data', (chunk) => {
+    childProcess.stdout!.on('data', (chunk) => {
       output += chunk;
     });
     await waitCompletion();
     expect(output).toEqual(
-      'Hello Alliage Core ! - test - production\nabout to shut down...\nshutting down with signal: @process-manager/SIGNAL/SUCCESS_SHUTDOWN\n',
+      'Test pre execute\nHello Alliage Core ! - test - production\nabout to shut down...\nTest pre terminate\nshutting down with signal: @process-manager/SIGNAL/SUCCESS_SHUTDOWN\n',
+    );
+  });
+
+  it('should display errors gracefully', async () => {
+    const { waitCompletion, process: childProcess } = sandbox.run(['error-process']);
+
+    let output = '';
+    childProcess.stderr!.on('data', (chunk) => {
+      output += chunk;
+    });
+    await waitCompletion();
+
+    expect(output).toMatch(
+      /^DummyError: A dummy error occured\nprop1:\ntest_prop1 \n\nprop2:\n\[ 'test_prop2-1', 'test_prop2-2' \] \n\nstack trace:\n.*$/gm,
     );
   });
 
@@ -110,11 +143,10 @@ tasks:
 `,
     );
 
-    const { waitCompletion, process: childProcess } = sandbox.build([]);
+    const { waitCompletion, process: childProcess } = sandbox.build(['--env=development']);
 
     let output = '';
-    // eslint-disable-next-line no-unused-expressions
-    childProcess.stdout?.on('data', (chunk) => {
+    childProcess.stdout!.on('data', (chunk) => {
       output += chunk;
     });
     await waitCompletion();

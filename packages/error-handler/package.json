@@ -1,7 +1,7 @@
 {
-  "name": "alliage-module-installer",
+  "name": "alliage-error-handler",
   "version": "0.0.1",
-  "description": "Module installer module for alliage",
+  "description": "Error handler module for Alliage",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,26 +16,12 @@
     "url": "https://github.com/TheHumbleJester/alliage-core/issues"
   },
   "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
+  "dependencies": {},
+  "peerDependencies": {
+    "alliage": "~0.0.1"
+  },
   "alliageManifest": {
     "type": "module",
-    "dependencies": [
-      "alliage-lifecycle"
-    ],
-    "environments": [
-      "development"
-    ]
-  },
-  "dependencies": {
-    "ajv": "^6.12.0",
-    "fs-extra": "^9.0.0",
-    "glob": "^7.1.6"
-  },
-  "devDependencies": {
-    "@types/fs-extra": "^8.1.0",
-    "@types/glob": "^7.1.1"
-  },
-  "peerDependencies": {
-    "alliage": "~0.0.1",
-    "alliage-lifecycle": "~0.0.1"
+    "dependencies": []
   }
 }

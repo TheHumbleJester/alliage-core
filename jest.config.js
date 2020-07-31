@@ -11,6 +11,7 @@ module.exports = {
     '^alliage-lifecycle/(.*)$': '<rootDir>/packages/lifecycle/src/$1',
     '^alliage-process-manager/(.*)$': '<rootDir>/packages/process-manager/src/$1',
     '^alliage-config-loader/(.*)$': '<rootDir>/packages/configuration-loader/src/$1',
+    '^alliage-events-listener-loader/(.*)$': '<rootDir>/packages/events-listener-loader/src/$1',
   },
   resolver: '<rootDir>/test-utils/resolver',
   globals: {

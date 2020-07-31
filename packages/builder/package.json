@@ -23,6 +23,9 @@
       "alliage-config-loader",
       "alliage-module-installer"
     ],
+    "environments": [
+      "development"
+    ],
     "installationProcedures": {
       "copyFiles": [
         [

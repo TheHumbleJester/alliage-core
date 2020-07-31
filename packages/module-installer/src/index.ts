@@ -84,6 +84,10 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
     const parsedArgs = ArgumentsParser.parse(
       CommandBuilder.create()
         .setDescription('Install a module')
+        .addArgument('moduleName', {
+          describe: 'The module to install',
+          type: 'string',
+        })
         .addArgument('phases', {
           describe: 'Installation phases to run',
           default: phasesInitEvent.getDefaultPhases().join(','),
@@ -105,7 +109,7 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
 
     let [currentPhase, ...nextPhases] = phases;
 
-    const moduleName = args.get('moduleName');
+    const moduleName = parsedArgs.get('moduleName');
     const modulePath = moduleName.match(LOCAL_MODULE_PATTERN)
       ? path.resolve(moduleName)
       : path.dirname(require.resolve(moduleName));
@@ -183,6 +187,7 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
             modules[packageInfo.name] = {
               module: moduleName,
               deps: manifest.dependencies,
+              envs: manifest.environments || [],
               hash: moduleHash,
             };
             fs.writeFileSync(MODULES_DEFINITION_PATH, JSON.stringify(modules, null, 2));

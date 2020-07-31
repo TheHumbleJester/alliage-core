@@ -19,6 +19,9 @@
       "alliage-service-loader/*": [
         "service-loader/src/*"
       ],
+      "alliage-events-listener-loader/*": [
+        "events-listener-loader/src/*"
+      ],
     }
   },
   "exclude": [],

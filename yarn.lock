@@ -1404,10 +1404,10 @@ alliage-sandbox@^0.0.1:
   dependencies:
     fs-extra "^9.0.0"
 
-alliage@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.npmjs.org/alliage/-/alliage-0.0.1.tgz#e0084fdb09df6c7205bd324cbacd70f161020787"
-  integrity sha512-MPLqnrUgNEku/Gd1TDKeIJscKM2BnysxdLMBQpY9VzSeoeLu1hLqIjBto4m1De4qr7lbOzvnMkHpLB1OA9IX4g==
+alliage@1.0.0-pre.1:
+  version "1.0.0-pre.1"
+  resolved "https://registry.npmjs.org/alliage/-/alliage-1.0.0-pre.1.tgz#61f477bc333fea8fad2f7394991ebc5bacd19a6e"
+  integrity sha512-8b/aaAVWqPWNnrnqNwZMkupwO5utm6dntogUSOE5FxCeL1Q6t1X+jDra37gxlJmovgxgpBju+/6aBUkkqQefhA==
   dependencies:
     yargs "^15.1.0"
 
@@ -1900,10 +1900,10 @@ ci-info@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-2.0.0.tgz#67a9e964be31a51e15e5010d58e6f12834002f46"
 
-cicd-cli-tools@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/cicd-cli-tools/-/cicd-cli-tools-0.2.0.tgz#41290ce322636e57ef2bec785d2f55123fd93b04"
-  integrity sha512-K2iBXPLAfjtZhFIzQNi+tDesoxl6f0reK8qFXiXvJBpgcRTImQA1QZyIx8ZMf1bgRGwRX4thk6JGIqRqSGdj6g==
+cicd-cli-tools@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.npmjs.org/cicd-cli-tools/-/cicd-cli-tools-0.3.0.tgz#30b38b8c79e3137f90df66b8d2c677ff4fd9301a"
+  integrity sha512-JXQlrHTT2DUJdft+L4TuMNGE+qzlcguCO0vYPkniIlnGD7t8Prn7Ig3VcZ9LvKnXSzVEbefP28yPu3vUMNkwnA==
   dependencies:
     lodash.get "^4.4.2"
     lodash.set "^4.3.2"

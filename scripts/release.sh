@@ -7,7 +7,7 @@ if [ $? -eq 0 ]; then
   for f in packages/*; do
     if [ -d "$f" ] && [ -e "$f/package.json" ]; then
       cd "$f"
-      packageName="$($packageProperty name)"
+      name="$($packageProperty name)"
       npm publish dist && echo "\"$name@$version\" has been successfully published on NPM"
       cd - >/dev/null
     fi
