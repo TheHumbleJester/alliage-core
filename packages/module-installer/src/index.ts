@@ -177,9 +177,9 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
           break;
         case INSTALLATION_PHASES.PROCEDURES:
           if (manifest.installationProcedures) {
-            procedures.forEach((procedure) => {
-              procedure.proceed(manifest, modulePath);
-            });
+            await Promise.all(
+              procedures.map((procedure) => procedure.proceed(manifest, modulePath)),
+            );
           }
           break;
         case INSTALLATION_PHASES.REGISTRATION:

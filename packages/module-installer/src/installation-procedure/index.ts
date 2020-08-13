@@ -7,5 +7,5 @@ export abstract class AbstractInstallationProcedure {
     return {};
   }
 
-  abstract proceed(manifest: Manifest, modulePath: string): void;
+  abstract proceed(manifest: Manifest, modulePath: string): void | Promise<void>;
 }
