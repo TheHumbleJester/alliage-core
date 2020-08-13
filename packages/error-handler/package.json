@@ -16,11 +16,14 @@
     "url": "https://github.com/TheHumbleJester/alliage-core/issues"
   },
   "homepage": "https://github.com/TheHumbleJester/alliage-core#readme",
-  "peerDependencies": {
-    "alliage": "~1.0.0"
-  },
   "alliageManifest": {
     "type": "module",
     "dependencies": []
+  },
+  "peerDependencies": {
+    "alliage": "~1.0.0"
+  },
+  "dependencies": {
+    "chalk": "^4.1.0"
   }
 }

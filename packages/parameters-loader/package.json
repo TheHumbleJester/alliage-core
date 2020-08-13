@@ -21,7 +21,8 @@
     "dependencies": [
       "alliage-lifecycle",
       "alliage-di",
-      "alliage-module-installer"
+      "alliage-module-installer",
+      "alliage-config-loader"
     ],
     "installationProcedures": {
       "copyFiles": [
