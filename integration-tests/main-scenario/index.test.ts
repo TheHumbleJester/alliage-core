@@ -73,7 +73,12 @@ describe('Main scenario', () => {
       },
       'alliage-parameters-loader': {
         module: 'alliage-parameters-loader',
-        deps: ['alliage-lifecycle', 'alliage-di', 'alliage-module-installer'],
+        deps: [
+          'alliage-lifecycle',
+          'alliage-di',
+          'alliage-module-installer',
+          'alliage-config-loader',
+        ],
         envs: [],
         hash: '47cd76e43f74bbc2e1baaf194d07e1fa',
       },
@@ -89,7 +94,7 @@ describe('Main scenario', () => {
         hash: '47cd76e43f74bbc2e1baaf194d07e1fa',
       },
       'alliage-events-listener-loader': {
-        deps: ['alliage-di', 'alliage-lifecycle'],
+        deps: ['alliage-di', 'alliage-lifecycle', 'alliage-service-loader'],
         module: 'alliage-events-listener-loader',
         envs: [],
         hash: '47cd76e43f74bbc2e1baaf194d07e1fa',

@@ -92,6 +92,7 @@ export class BuilderBeforeTaskEvent extends AbstractWritableEvent<
 
   setDescription(description: string) {
     this.getWritablePayload().description = description;
+    return this;
   }
 }
 

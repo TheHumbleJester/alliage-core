@@ -83,6 +83,7 @@ export abstract class AbstractExecuteEvent extends AbstractWritableEvent<
 
   setProcess(process: AbstractProcess) {
     this.getWritablePayload().process = process;
+    return this;
   }
 
   static getParams(process: AbstractProcess, args: Arguments, env: string) {

@@ -16,13 +16,15 @@
   "peerDependencies": {
     "alliage": "~1.0.0",
     "alliage-di": "~1.0.0",
-    "alliage-lifecycle": "~1.0.0"
+    "alliage-lifecycle": "~1.0.0",
+    "alliage-service-loader": "~1.0.0"
   },
   "alliageManifest": {
     "type": "module",
     "dependencies": [
       "alliage-di",
-      "alliage-lifecycle"
+      "alliage-lifecycle",
+      "alliage-service-loader"
     ]
   }
 }
