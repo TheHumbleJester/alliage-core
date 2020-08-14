@@ -1,6 +1,6 @@
 {
   "name": "alliage-module-installer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Module installer module for alliage",
   "main": "index.js",
   "scripts": {
@@ -36,6 +36,6 @@
   },
   "peerDependencies": {
     "alliage": "~1.0.0",
-    "alliage-lifecycle": "~1.0.0"
+    "alliage-lifecycle": "~1.1.0"
   }
 }

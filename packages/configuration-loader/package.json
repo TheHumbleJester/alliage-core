@@ -1,6 +1,6 @@
 {
   "name": "alliage-config-loader",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Configuration loader module for Alliage",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
   },
   "peerDependencies": {
     "alliage": "~1.0.0",
-    "alliage-lifecycle": "~1.0.0"
+    "alliage-lifecycle": "~1.1.0"
   },
   "devDependencies": {
     "@types/yaml": "^1.2.0"
