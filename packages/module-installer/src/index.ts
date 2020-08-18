@@ -109,13 +109,20 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
 
     let [currentPhase, ...nextPhases] = phases;
 
-    const moduleName = parsedArgs.get('moduleName');
-    const modulePath = moduleName.match(LOCAL_MODULE_PATTERN)
-      ? path.resolve(moduleName)
-      : path.dirname(require.resolve(moduleName));
+    let packageInfo;
+    let moduleName: string;
+    let modulePath: string;
+    try {
+      moduleName = parsedArgs.get('moduleName');
+      modulePath = moduleName.match(LOCAL_MODULE_PATTERN)
+        ? path.resolve(moduleName)
+        : path.dirname(require.resolve(moduleName));
 
-    // eslint-disable-next-line import/no-dynamic-require, global-require
-    const packageInfo = require(`${modulePath}/package.json`);
+      // eslint-disable-next-line import/no-dynamic-require, global-require
+      packageInfo = require(`${modulePath}/package.json`);
+    } catch (e) {
+      return;
+    }
 
     const moduleHash = crypto
       .createHash('md5')
