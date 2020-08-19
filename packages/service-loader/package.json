@@ -1,6 +1,6 @@
 {
   "name": "alliage-service-loader",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Service loader module for Alliage",
   "main": "index.js",
   "scripts": {
@@ -41,9 +41,9 @@
   },
   "peerDependencies": {
     "alliage": "~1.0.0",
-    "alliage-config-loader": "~1.1.0",
-    "alliage-di": "~1.1.0",
-    "alliage-lifecycle": "~1.1.0",
-    "alliage-module-installer": "~1.1.0"
+    "alliage-config-loader": "~1.1.1",
+    "alliage-di": "~1.1.1",
+    "alliage-lifecycle": "~1.1.1",
+    "alliage-module-installer": "~1.1.1"
   }
 }
