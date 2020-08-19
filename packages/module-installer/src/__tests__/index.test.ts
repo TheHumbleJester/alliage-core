@@ -648,6 +648,22 @@ describe('module-installer', () => {
         expect(schemaValidationHandler).not.toHaveBeenCalled();
         expect(phaseEndHandler).not.toHaveBeenCalled();
       });
+
+      it('should not run anything if the module does not exist', async () => {
+        const installEvent = new LifeCycleInstallEvent(INSTALL_EVENTS.INSTALL, {
+          serviceContainer,
+          args: Arguments.create({}, ['not-existing-module']),
+          env: 'test',
+        });
+
+        await module.handleInstall(installEvent);
+
+        expect(phasesInitHandler).toHaveBeenCalledTimes(1);
+        expect(phaseStartHandler).not.toHaveBeenCalled();
+        expect(schemaValidationHandler).not.toHaveBeenCalled();
+        expect(phaseEndHandler).not.toHaveBeenCalled();
+        expect(installScriptExecuteMock).not.toHaveBeenCalled();
+      });
     });
   });
 });
