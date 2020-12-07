@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import crypto from 'crypto';
 
 import { InstallScript } from 'alliage/scripts/install';
@@ -77,7 +77,7 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
       event.getEnv(),
     );
 
-    eventManager.emit(phasesInitEvent.getType(), phasesInitEvent);
+    await eventManager.emit(phasesInitEvent.getType(), phasesInitEvent);
 
     const args = event.getArguments();
 
@@ -146,7 +146,7 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
         nextPhases,
         event.getEnv(),
       );
-      eventManager.emit(phaseStartEvent.getType(), phaseStartEvent);
+      await eventManager.emit(phaseStartEvent.getType(), phaseStartEvent);
       const manifest = phaseStartEvent.getManifest();
       currentPhase = phaseStartEvent.getCurrentPhase() as INSTALLATION_PHASES;
       nextPhases = phaseStartEvent.getNextPhases() as INSTALLATION_PHASES[];
@@ -171,7 +171,7 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
         extendedPropertiesSchemas,
         event.getEnv(),
       );
-      eventManager.emit(schemaValidationEvent.getType(), schemaValidationEvent);
+      await eventManager.emit(schemaValidationEvent.getType(), schemaValidationEvent);
 
       validate(moduleName, manifest, schemaValidationEvent.getExtendedPropertiesSchemas());
 
@@ -197,14 +197,14 @@ export = class ModuleInstallerModule extends AbstractLifeCycleAwareModule {
               envs: manifest.environments || [],
               hash: moduleHash,
             };
-            fs.writeFileSync(MODULES_DEFINITION_PATH, JSON.stringify(modules, null, 2));
+            await fs.writeFile(MODULES_DEFINITION_PATH, JSON.stringify(modules, null, 2));
           }
           break;
 
         // no default
       }
 
-      eventManager.emit(
+      await eventManager.emit(
         ...InstallationPhaseEndEvent.getParams(
           moduleName,
           modulePath,

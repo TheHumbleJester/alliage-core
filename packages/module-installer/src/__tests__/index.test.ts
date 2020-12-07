@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs';
+import { promises as fs } from 'fs';
 
 import { Arguments } from 'alliage/core/utils/cli';
 import { InstallScript } from 'alliage/scripts/install';
@@ -398,7 +398,7 @@ describe('module-installer', () => {
       });
 
       it('should finally run the registration phase', async () => {
-        const writeSpy = jest.spyOn(fs, 'writeFileSync').mockReturnValue();
+        const writeSpy = jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined as never);
         jest.doMock(
           '/path/to/test-module/package.json',
           () => ({
@@ -466,7 +466,7 @@ describe('module-installer', () => {
       });
 
       it('should not register compounds', async () => {
-        const writeSpy = jest.spyOn(fs, 'writeFileSync').mockReturnValue();
+        const writeSpy = jest.spyOn(fs, 'writeFile').mockResolvedValueOnce(undefined as never);
         jest.doMock(
           '/path/to/test-module/package.json',
           () => ({

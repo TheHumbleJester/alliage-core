@@ -51,18 +51,20 @@ export = class ProcessManagerModule extends AbstractLifeCycleAwareModule {
     }
 
     const config = CommandBuilder.create();
-    eventManager.emit(...PreConfigureEvent.getParams(currentProcess, config, event.getEnv()));
+    await eventManager.emit(...PreConfigureEvent.getParams(currentProcess, config, event.getEnv()));
     currentProcess.configure(config);
-    eventManager.emit(...PostConfigureEvent.getParams(currentProcess, config, event.getEnv()));
+    await eventManager.emit(
+      ...PostConfigureEvent.getParams(currentProcess, config, event.getEnv()),
+    );
 
     const processArgs = ArgumentsParser.parse(config, parsedArgs);
 
     const preExecuteEvent = new PreExecuteEvent(currentProcess, processArgs, event.getEnv());
-    eventManager.emit(preExecuteEvent.getType(), preExecuteEvent);
+    await eventManager.emit(preExecuteEvent.getType(), preExecuteEvent);
     const computedProcess = preExecuteEvent.getProcess();
 
     const handleStop = async (signal: SIGNAL, payload: SignalPayload) => {
-      eventManager.emit(
+      await eventManager.emit(
         ...PreTerminateEvent.getParams(
           computedProcess,
           processArgs,
@@ -72,7 +74,7 @@ export = class ProcessManagerModule extends AbstractLifeCycleAwareModule {
         ),
       );
       await computedProcess.terminate(processArgs, event.getEnv(), signal, payload);
-      eventManager.emit(
+      await eventManager.emit(
         ...PostTerminateEvent.getParams(
           computedProcess,
           processArgs,

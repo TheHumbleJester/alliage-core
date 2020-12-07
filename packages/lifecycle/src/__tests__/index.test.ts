@@ -55,9 +55,9 @@ describe('lifecycle', () => {
     });
 
     describe('#onInstall', () => {
-      it('should trigger all the install lifecycle events', () => {
+      it('should trigger all the install lifecycle events', async () => {
         const args = Arguments.create();
-        lifecycleModule.onInstall(args, 'test');
+        await lifecycleModule.onInstall(args, 'test');
 
         expect(emitMock.mock.calls).toEqual([
           [INIT_EVENTS.PRE_INIT, expect.any(LifeCycleInitEvent)],
@@ -119,9 +119,9 @@ describe('lifecycle', () => {
     });
 
     describe('#onBuild', () => {
-      it('should trigger all the build lifecycle events', () => {
+      it('should trigger all the build lifecycle events', async () => {
         const args = Arguments.create();
-        lifecycleModule.onBuild(args, 'test');
+        await lifecycleModule.onBuild(args, 'test');
 
         expect(emitMock.mock.calls).toEqual([
           [INIT_EVENTS.PRE_INIT, expect.any(LifeCycleInitEvent)],
@@ -183,9 +183,9 @@ describe('lifecycle', () => {
     });
 
     describe('#onRun', () => {
-      it('should trigger all the run lifecycle events', () => {
+      it('should trigger all the run lifecycle events', async () => {
         const args = Arguments.create();
-        lifecycleModule.onRun(args, 'test');
+        await lifecycleModule.onRun(args, 'test');
 
         expect(emitMock.mock.calls).toEqual([
           [INIT_EVENTS.PRE_INIT, expect.any(LifeCycleInitEvent)],

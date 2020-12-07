@@ -37,14 +37,14 @@ export = class LifecyleModule extends AbstractModule {
     this.serviceContainer.addService('event_manager', this.eventManager);
   };
 
-  private emitInitEvents(context: INITIALIZATION_CONTEXT, payload: LifeCycleEventPayload) {
+  private async emitInitEvents(context: INITIALIZATION_CONTEXT, payload: LifeCycleEventPayload) {
     const eventParamsCreator = LifeCycleInitEvent.getParamsCreator({
       ...payload,
       context,
     });
-    this.eventManager.emit(...eventParamsCreator.createPreInit());
-    this.eventManager.emit(...eventParamsCreator.createInit());
-    this.eventManager.emit(...eventParamsCreator.createPostInit());
+    await this.eventManager.emit(...eventParamsCreator.createPreInit());
+    await this.eventManager.emit(...eventParamsCreator.createInit());
+    await this.eventManager.emit(...eventParamsCreator.createPostInit());
     this.serviceContainer.freeze();
   }
 
@@ -58,31 +58,31 @@ export = class LifecyleModule extends AbstractModule {
 
   onInstall = async (args: Arguments, env: string) => {
     const payload = this.buildEventPayload(args, env);
-    this.emitInitEvents(INITIALIZATION_CONTEXT.INSTALL, payload);
+    await this.emitInitEvents(INITIALIZATION_CONTEXT.INSTALL, payload);
 
     const eventParamsCreator = LifeCycleInstallEvent.getParamsCreator(payload);
-    this.eventManager.emit(...eventParamsCreator.createPreInstall());
-    this.eventManager.emit(...eventParamsCreator.createInstall());
-    this.eventManager.emit(...eventParamsCreator.createPostInstall());
+    await this.eventManager.emit(...eventParamsCreator.createPreInstall());
+    await this.eventManager.emit(...eventParamsCreator.createInstall());
+    await this.eventManager.emit(...eventParamsCreator.createPostInstall());
   };
 
   onBuild = async (args: Arguments, env: string) => {
     const payload = this.buildEventPayload(args, env);
-    this.emitInitEvents(INITIALIZATION_CONTEXT.BUILD, payload);
+    await this.emitInitEvents(INITIALIZATION_CONTEXT.BUILD, payload);
 
     const eventParamsCreator = LifeCycleBuildEvent.getParamsCreator(payload);
-    this.eventManager.emit(...eventParamsCreator.createPreBuild());
-    this.eventManager.emit(...eventParamsCreator.createBuild());
-    this.eventManager.emit(...eventParamsCreator.createPostBuild());
+    await this.eventManager.emit(...eventParamsCreator.createPreBuild());
+    await this.eventManager.emit(...eventParamsCreator.createBuild());
+    await this.eventManager.emit(...eventParamsCreator.createPostBuild());
   };
 
   onRun = async (args: Arguments, env: string) => {
     const payload = this.buildEventPayload(args, env);
-    this.emitInitEvents(INITIALIZATION_CONTEXT.RUN, payload);
+    await this.emitInitEvents(INITIALIZATION_CONTEXT.RUN, payload);
 
     const eventParamsCreator = LifeCycleRunEvent.getParamsCreator(payload);
-    this.eventManager.emit(...eventParamsCreator.createPreRun());
-    this.eventManager.emit(...eventParamsCreator.createRun());
-    this.eventManager.emit(...eventParamsCreator.createPostRun());
+    await this.eventManager.emit(...eventParamsCreator.createPreRun());
+    await this.eventManager.emit(...eventParamsCreator.createRun());
+    await this.eventManager.emit(...eventParamsCreator.createPostRun());
   };
 };
