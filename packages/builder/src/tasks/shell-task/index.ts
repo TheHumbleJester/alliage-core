@@ -50,18 +50,18 @@ export class ShellTask extends AbstractTask {
   }
 
   async run(params: Params): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const beforeRunEvent = new ShellTaskBeforeRunEvent(params.cmd);
-      this.eventManager.emit(beforeRunEvent.getType(), beforeRunEvent);
+      await this.eventManager.emit(beforeRunEvent.getType(), beforeRunEvent);
       const cmd = beforeRunEvent.getCommand();
 
-      exec(cmd, (error: ExecException | null, stdout: string, stderr: string) => {
+      exec(cmd, async (error: ExecException | null, stdout: string, stderr: string) => {
         if (error) {
           const exception = new CommandError(error, stdout, stderr);
-          this.eventManager.emit(...ShellTaskErrorEvent.getParams(cmd, exception));
+          await this.eventManager.emit(...ShellTaskErrorEvent.getParams(cmd, exception));
           reject(exception);
         } else {
-          this.eventManager.emit(...ShellTaskSuccessEvent.getParams(cmd, stdout, stderr));
+          await this.eventManager.emit(...ShellTaskSuccessEvent.getParams(cmd, stdout, stderr));
           resolve();
         }
       });

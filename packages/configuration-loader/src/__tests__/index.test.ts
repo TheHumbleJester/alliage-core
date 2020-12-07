@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { promises as fs } from 'fs';
 
 import { EventManager } from 'alliage-lifecycle/event-manager';
 import { INIT_EVENTS, LifeCycleInitEvent } from 'alliage-lifecycle/events';
@@ -62,20 +62,20 @@ describe('configuration-loader', () => {
     });
 
     describe('#handleInit', () => {
-      let existsSyncMock: jest.SpyInstance;
+      let statMock: jest.SpyInstance;
 
       beforeEach(() => {
-        existsSyncMock = jest.spyOn(fs, 'existsSync');
-        jest.spyOn(fs, 'readFileSync').mockReturnValue(fakeConfigFile);
+        statMock = jest.spyOn(fs, 'stat');
+        jest.spyOn(fs, 'readFile').mockResolvedValue(fakeConfigFile);
       });
 
       afterEach(() => {
         jest.restoreAllMocks();
       });
 
-      it('should load the configuration files in the service container and trigger all the events', () => {
-        existsSyncMock.mockReturnValue(true);
-        module.handleInit(initEvent);
+      it('should load the configuration files in the service container and trigger all the events', async () => {
+        statMock.mockReturnValue(true);
+        await module.handleInit(initEvent);
 
         // Checks events order
         expect(emitMock.mock.calls).toEqual([
@@ -175,10 +175,18 @@ describe('configuration-loader', () => {
         });
       });
 
-      it('should throw an error if the configuration file does not exists', () => {
-        existsSyncMock.mockReturnValue(false);
+      it('should throw an error if the configuration file does not exists', async () => {
+        statMock.mockRejectedValue(new Error());
 
-        expect(() => module.handleInit(initEvent)).toThrow(
+        let error: Error;
+        try {
+          await module.handleInit(initEvent);
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error!).toBeInstanceOf(Error);
+        expect(error!.message).toMatch(
           /^Can't find the following configuration file: (.*)fileName\.yaml$/,
         );
       });

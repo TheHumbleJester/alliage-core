@@ -25,6 +25,7 @@ import {
 
 jest.mock('alliage-config-loader/validators/json-schema');
 jest.mock('alliage-config-loader/helpers');
+jest.mock('glob', () => jest.fn());
 
 describe('service-loader', () => {
   describe('ServiceLoaderModule', () => {
@@ -58,7 +59,7 @@ describe('service-loader', () => {
         exclude: ['**/__tests__/**'],
       });
 
-      const globSpy = jest.spyOn(glob, 'sync');
+      const globSpy = (glob as unknown) as jest.Mock;
       const registerServiceSpy = jest.spyOn(serviceContainer, 'registerService');
 
       const beforeAllHandler = jest.fn();
@@ -84,7 +85,9 @@ describe('service-loader', () => {
       });
 
       it('should load all the services according to the configuration', async () => {
-        globSpy.mockReturnValueOnce(['/path/to/src/services/dummy-service']);
+        globSpy.mockImplementationOnce((_path: string, _options: any, callback: Function) => {
+          callback(null, ['/path/to/src/services/dummy-service']);
+        });
 
         @Service('dummy_service', [service('other_service')])
         class DummyService {}
@@ -133,12 +136,16 @@ describe('service-loader', () => {
         ]);
 
         expect(globSpy).toHaveBeenCalledTimes(1);
-        expect(globSpy).toHaveBeenCalledWith('overriden/services/**', {
-          cwd: path.resolve('src'),
-          absolute: true,
-          nodir: true,
-          ignore: ['overriden/**/__tests__/**'],
-        });
+        expect(globSpy).toHaveBeenCalledWith(
+          'overriden/services/**',
+          {
+            cwd: path.resolve('src'),
+            absolute: true,
+            nodir: true,
+            ignore: ['overriden/**/__tests__/**'],
+          },
+          expect.any(Function),
+        );
 
         expect(beforeAllHandler).toHaveBeenCalledTimes(1);
         expect(beforeOneHandler).toHaveBeenCalledTimes(1);
@@ -146,8 +153,26 @@ describe('service-loader', () => {
         expect(afterAllHandler).toHaveBeenCalledTimes(1);
       });
 
+      it('should throw an error if the glob fails', async () => {
+        const error = new Error();
+        globSpy.mockImplementationOnce((_path: string, _options: any, callback: Function) => {
+          callback(error);
+        });
+
+        let thrownError: Error;
+        try {
+          await module.handleInit(initEvent);
+        } catch (e) {
+          thrownError = e;
+        }
+
+        expect(thrownError!).toBe(error);
+      });
+
       it('should not load the service if it does not use the @Service decorator', async () => {
-        globSpy.mockReturnValueOnce(['/path/to/src/services/dummy-service']);
+        globSpy.mockImplementationOnce((_path: string, _options: any, callback: Function) => {
+          callback(null, ['/path/to/src/services/dummy-service']);
+        });
 
         class DummyService {}
 
@@ -164,7 +189,9 @@ describe('service-loader', () => {
       });
 
       it('should not load the service if it does export a default module', async () => {
-        globSpy.mockReturnValueOnce(['/path/to/src/services/dummy-service']);
+        globSpy.mockImplementationOnce((_path: string, _options: any, callback: Function) => {
+          callback(null, ['/path/to/src/services/dummy-service']);
+        });
 
         jest.doMock('/path/to/src/services/dummy-service', () => null, { virtual: true });
 
@@ -179,7 +206,9 @@ describe('service-loader', () => {
       });
 
       it('should use a empty array as default value for the "exclude" parameter', async () => {
-        globSpy.mockReturnValueOnce(['/path/to/src/services/dummy-service']);
+        globSpy.mockImplementationOnce((_path: string, _options: any, callback: Function) => {
+          callback(null, ['/path/to/src/services/dummy-service']);
+        });
         serviceContainer.getParameter<Config>(CONFIG_NAME).exclude = undefined;
 
         @Service('other_dummy_service', [service('other_service')])
@@ -195,12 +224,16 @@ describe('service-loader', () => {
         ]);
 
         expect(globSpy).toHaveBeenCalledTimes(1);
-        expect(globSpy).toHaveBeenCalledWith('services/**', {
-          cwd: path.resolve('src'),
-          absolute: true,
-          nodir: true,
-          ignore: [],
-        });
+        expect(globSpy).toHaveBeenCalledWith(
+          'services/**',
+          {
+            cwd: path.resolve('src'),
+            absolute: true,
+            nodir: true,
+            ignore: [],
+          },
+          expect.any(Function),
+        );
 
         expect(beforeAllHandler).toHaveBeenCalledTimes(1);
         expect(beforeOneHandler).toHaveBeenCalledTimes(1);

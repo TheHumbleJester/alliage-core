@@ -52,42 +52,55 @@ export class FileCopyInstallationProcedure extends AbstractInstallationProcedure
     };
   }
 
-  proceed(manifest: Manifest<FileCopyManifest>, modulePath: string) {
+  async proceed(manifest: Manifest<FileCopyManifest>, modulePath: string) {
     const filesToCopy = manifest.installationProcedures.copyFiles;
     if (filesToCopy) {
       const copiedFiles: [string, string][] = [];
       const beforeCopyAllEvent = new FileCopyBeforeCopyAllEvent(modulePath, filesToCopy);
-      this.eventManager.emit(beforeCopyAllEvent.getType(), beforeCopyAllEvent);
+      await this.eventManager.emit(beforeCopyAllEvent.getType(), beforeCopyAllEvent);
       const computedModulePath = beforeCopyAllEvent.getModulePath();
-      beforeCopyAllEvent.getFilesToCopy().forEach(([source, destination]) => {
-        glob.sync(`${computedModulePath}/${source}`).forEach((sourceFile) => {
-          const absoluteDestination = path.resolve(destination);
-          if (!fse.existsSync(absoluteDestination)) {
-            const beforeCopyFileEvent = new FileCopyBeforeCopyFileEvent(
-              computedModulePath,
-              sourceFile,
-              absoluteDestination,
-            );
-            this.eventManager.emit(beforeCopyFileEvent.getType(), beforeCopyFileEvent);
-            const computedSourceFile = beforeCopyFileEvent.getSourceFile();
-            const computedDestination = beforeCopyFileEvent.getDestination();
+      await Promise.all(
+        beforeCopyAllEvent.getFilesToCopy().map(async ([source, destination]) => {
+          const files: string[] = await new Promise((resolve, reject) => {
+            glob(`${computedModulePath}/${source}`, (err, matches) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+              resolve(matches);
+            });
+          });
+          await Promise.all(
+            files.map(async (sourceFile) => {
+              const absoluteDestination = path.resolve(destination);
+              if (!(await fse.pathExists(absoluteDestination))) {
+                const beforeCopyFileEvent = new FileCopyBeforeCopyFileEvent(
+                  computedModulePath,
+                  sourceFile,
+                  absoluteDestination,
+                );
+                await this.eventManager.emit(beforeCopyFileEvent.getType(), beforeCopyFileEvent);
+                const computedSourceFile = beforeCopyFileEvent.getSourceFile();
+                const computedDestination = beforeCopyFileEvent.getDestination();
 
-            fse.copySync(computedSourceFile, computedDestination);
+                await fse.copy(computedSourceFile, computedDestination);
 
-            console.log(`Copy ${sourceFile} -> ${destination}`);
-            copiedFiles.push([computedSourceFile, computedDestination]);
+                process.stdout.write(`Copy ${sourceFile} -> ${destination}\n`);
+                copiedFiles.push([computedSourceFile, computedDestination]);
 
-            this.eventManager.emit(
-              ...FileCopyAfterCopyFileEvent.getParams(
-                computedModulePath,
-                computedSourceFile,
-                computedDestination,
-              ),
-            );
-          }
-        });
-      });
-      this.eventManager.emit(
+                await this.eventManager.emit(
+                  ...FileCopyAfterCopyFileEvent.getParams(
+                    computedModulePath,
+                    computedSourceFile,
+                    computedDestination,
+                  ),
+                );
+              }
+            }),
+          );
+        }),
+      );
+      await this.eventManager.emit(
         ...FileCopyAfterCopyAllEvent.getParams(computedModulePath, copiedFiles),
       );
     }

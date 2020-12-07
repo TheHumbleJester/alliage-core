@@ -44,7 +44,7 @@ export = class BuilderModule extends AbstractLifeCycleAwareModule {
         {},
       ),
     );
-    eventManager.emit(beforeAllTasksEvent.getType(), beforeAllTasksEvent);
+    await eventManager.emit(beforeAllTasksEvent.getType(), beforeAllTasksEvent);
     const config = beforeAllTasksEvent.getConfig();
     const tasks = beforeAllTasksEvent.getTasks();
 
@@ -61,17 +61,19 @@ export = class BuilderModule extends AbstractLifeCycleAwareModule {
         injectEnvironment(event.getEnv(), taskData.params),
         taskData.description,
       );
-      eventManager.emit(beforeTask.getType(), beforeTask);
+      // eslint-disable-next-line no-await-in-loop
+      await eventManager.emit(beforeTask.getType(), beforeTask);
       const params = beforeTask.getParams();
       const description = beforeTask.getDescription();
 
-      console.log(`Running task: ${description}...`);
+      process.stdout.write(`Running task: ${description}...\n`);
 
       // eslint-disable-next-line no-await-in-loop
       await task.run(params);
 
-      eventManager.emit(...BuilderAfterTaskEvent.getParams(task, params, description));
+      // eslint-disable-next-line no-await-in-loop
+      await eventManager.emit(...BuilderAfterTaskEvent.getParams(task, params, description));
     }
-    eventManager.emit(...BuilderAfterAllTasksEvent.getParams(config, tasks));
+    await eventManager.emit(...BuilderAfterAllTasksEvent.getParams(config, tasks));
   };
 };
