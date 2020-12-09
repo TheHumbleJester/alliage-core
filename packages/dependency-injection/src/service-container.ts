@@ -159,24 +159,14 @@ export class ServiceContainer {
   }
 
   private loadParameter(getter: ParameterGetter) {
-    let isUnknown = false;
-    let res: any;
-    try {
-      res = getter(
-        Array.from(this.parameterBag.entries()).reduce((acc, [key, value]) => {
-          acc[key] = value;
-          return acc;
-        }, {} as { [key: string]: Parameter }),
-      );
-    } catch (e) {
-      if (e instanceof TypeError) {
-        isUnknown = true;
-      } else {
-        throw e;
-      }
-    }
+    const res = getter(
+      Array.from(this.parameterBag.entries()).reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      }, {} as { [key: string]: Parameter }),
+    );
 
-    if (isUnknown || res === undefined) {
+    if (res === undefined) {
       throw new UnknownParameterError(`The parameter '${getter.name}' does not exist`);
     }
 

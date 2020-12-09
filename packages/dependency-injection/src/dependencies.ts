@@ -1,3 +1,5 @@
+import get from 'lodash.get';
+
 export enum DEPENDENCY {
   SERVICE = 'DEPENDENCY/SERVICE',
   PARAMETER = 'DEPENDENCY/PARAMETER',
@@ -47,7 +49,7 @@ export type ParameterGetter = (parameters: object) => any;
 export function parameter(path: string | ParameterGetter): ParameterDependency {
   let getter: ParameterGetter;
   if (typeof path === 'string') {
-    getter = <ParameterGetter>new Function('parameters', `return parameters.${path}`); // eslint-disable-line no-new-func
+    getter = (parameters: object) => get(parameters, path);
     Object.defineProperty(getter, 'name', { value: path });
   } else {
     getter = path;
