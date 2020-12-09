@@ -14,10 +14,12 @@ describe('dependency-injection', () => {
   describe('DependencyInjectionModule', () => {
     const ServiceContainerMock = <jest.Mock>ServiceContainer;
     const addServiceMock = jest.fn();
+    const setParameterMock = jest.fn();
     let serviceContainerMockInstance: any;
     ServiceContainerMock.mockImplementation(function ctorMock(this: any) {
       serviceContainerMockInstance = this;
       this.addService = addServiceMock;
+      this.setParameter = setParameterMock;
       return this;
     });
     const dim = new DependencyInjetionModule();
@@ -39,6 +41,7 @@ describe('dependency-injection', () => {
           'service_container',
           serviceContainerMockInstance,
         );
+        expect(setParameterMock).toHaveBeenCalledWith('environment', 'test');
         expect(pcMock.set).toHaveBeenCalledWith('service_container', serviceContainerMockInstance);
       });
     });

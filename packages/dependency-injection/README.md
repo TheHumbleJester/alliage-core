@@ -223,12 +223,7 @@ Dependencies are available from the `alliage-di/dependencies` module and allows 
 They can be used at the registration of the service, like so:
 
 ```js
-import {
-  service,
-  instanceOf,
-  allInstancesOf,
-  parameter
-} from 'alliage-di/dependencies';
+import { service, instanceOf, allInstancesOf, parameter } from 'alliage-di/dependencies';
 
 // ...
 
@@ -248,12 +243,7 @@ serviceContainer.registerService(
 Or to fetch a specific dependency, like so:
 
 ```js
-import {
-  service,
-  instanceOf,
-  allInstancesOf,
-  parameter
-} from 'alliage-di/dependencies';
+import { service, instanceOf, allInstancesOf, parameter } from 'alliage-di/dependencies';
 
 // ...
 
@@ -285,3 +275,10 @@ The path can be both a string or a function.
 
 - When it's a string, it must be the path to the wanted parameter. Ex: `'myParameter.arrayOfValues[0].property'`.
 - When it's a function, this one will receive an object containing all the parameters and must return the wanted portion of this object.
+
+### Default dependencies
+
+The service container instanciated in the Alliage app will contain 2 depdendencies by default:
+
+- `service('service_container')`: The service container itself.
+- `parameter('environment')`: The execution environment as defined in the `--env` argument of the `alliage-scripts`.
