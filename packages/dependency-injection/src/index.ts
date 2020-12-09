@@ -11,9 +11,10 @@ export = class DependencyInjectionModule extends AbstractModule {
     };
   }
 
-  onInit = async (_args: Arguments, _env: string, container: PrimitiveContainer) => {
+  onInit = async (_args: Arguments, env: string, container: PrimitiveContainer) => {
     const serviceContainer = new ServiceContainer();
     serviceContainer.addService('service_container', serviceContainer);
+    serviceContainer.setParameter('environment', env);
     container.set('service_container', serviceContainer);
   };
 };
