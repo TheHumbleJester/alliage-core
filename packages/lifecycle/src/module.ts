@@ -17,12 +17,12 @@ export abstract class AbstractLifeCycleAwareModule extends AbstractModule {
     };
   }
 
-  onInit = async (_args: Arguments, _env: string, container: PrimitiveContainer) => {
+  onInit = async (_args: Arguments, env: string, container: PrimitiveContainer) => {
     const serviceContainer = container.get<ServiceContainer>('service_container');
     const eventManager = serviceContainer.getService<EventManager>('event_manager');
 
     eventManager.on(INIT_EVENTS.PRE_INIT, (event: LifeCycleInitEvent) => {
-      this.registerServices(event.getServiceContainer());
+      this.registerServices(event.getServiceContainer(), env);
     });
 
     const eventHandlers = this.getEventHandlers();
@@ -33,7 +33,7 @@ export abstract class AbstractLifeCycleAwareModule extends AbstractModule {
     });
   };
 
-  registerServices(_serviceContainer: ServiceContainer) {}
+  registerServices(_serviceContainer: ServiceContainer, _env: string) {}
 
   getEventHandlers(): LifeCycleEventHandlers {
     return {};

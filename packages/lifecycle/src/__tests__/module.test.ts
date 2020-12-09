@@ -71,7 +71,7 @@ describe('lifecycle/module', () => {
 
         eventManagerMock.on.mock.calls[0][1](preInitEvent);
         expect(registerServicesMock).toHaveBeenCalledTimes(1);
-        expect(registerServicesMock).toHaveBeenCalledWith(sc);
+        expect(registerServicesMock).toHaveBeenCalledWith(sc, 'test');
       });
     });
 

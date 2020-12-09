@@ -325,7 +325,7 @@ You can use it instead of `AbstractModule` to create your modules.
 All you need is to implement the following methods:
 
 - `getEventHandlers()`: Returns the list of events you want your module to listen to and their corresponding listener.
-- `registerServices(serviceContainer: ServiceContainer)` _(optional)_: Allows your module to register service or set parameters in the service container.
+- `registerServices(serviceContainer: ServiceContainer, env: string)` _(optional)_: Allows your module to register service or set parameters in the service container.
 
 ```js
 import { AbstractLifeCycleAwareModule } from 'alliage-lifecycle/module';
@@ -343,7 +343,7 @@ export = class MyModule extends AbstractLifeCycleAwareModule {
   }
 
   // Here we register services
-  registerServices(serviceContainer) {
+  registerServices(serviceContainer, env) {
     serviceContainer.registerService('my_service', MyService, []);
   }
 
