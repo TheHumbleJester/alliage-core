@@ -79,17 +79,14 @@ class MyService {
 
 // ...
 
-serviceContainer.registerService(
-  'my_service',
-  MyService,
-  [service('event_manager')]
-);
+serviceContainer.registerService('my_service', MyService, [service('event_manager')]);
 ```
 
-The event manager is basically an `EventEmitter` allowing to emit and listen to events.
+The event manager has an API close to `EventEmitter` allowing to emit and listen to events. The particularity is that listeners can be `async` and will then be executed sequentially.
 
 It has the following methods:
-- `on(eventType: string, listener: (...args: any[]) => void`: Listen to the `eventType` event and calls `listener` when the event is emitted. 
+
+- `on(eventType: string, listener: (...args: any[]) => void | Promise<void>)`: Listen to the `eventType` event and calls `listener` when the event is emitted. It returns a function allowing to unsubscribe from the event.
 - `emit(eventType: string, ...args: any[])`: Emit the `eventType` event and pass `...args` to any of the event's listeners.
 
 #### AbstractEvent
@@ -105,8 +102,8 @@ import { AbstractEvent } from 'alliage-lifecycle/events';
 
 // We create an event type
 const LOGIN_EVENTS = {
-  USER_LOGGED_IN: 'LOGIN_EVENTS/USER_LOGGED_IN'
-}
+  USER_LOGGED_IN: 'LOGIN_EVENTS/USER_LOGGED_IN',
+};
 
 // We create our own event class
 class LoginUserLoggedEvent extends AbstractEvent {
@@ -115,7 +112,7 @@ class LoginUserLoggedEvent extends AbstractEvent {
   constructor(userId) {
     super(
       LOGIN_EVENTS.USER_LOGGED_IN, // The event type
-      { userId } // The payload
+      { userId }, // The payload
     );
   }
 
@@ -151,15 +148,15 @@ This class will just create a writable copy of your original payload that you'll
 import { AbstractWritableEvent } from 'alliage-lifecycle/events';
 
 const CHECKOUT_EVENTS = {
-  COMPUTE_FINAL_PRICE: 'CHECKOUT_EVENTS/COMPUTE_FINAL_PRICE'
-}
+  COMPUTE_FINAL_PRICE: 'CHECKOUT_EVENTS/COMPUTE_FINAL_PRICE',
+};
 
 // We make our event class extends AbstraxtWritableEvent this time.
 class CheckoutComputeFinalPriceEvent extends AbstractWritableEvent {
   constructor(price, vatNumber, countryCode) {
     super(
       CHECKOUT_EVENTS.COMPUTE_FINAL_PRICE, // The event type
-      { price, vatNumber, countryCode } // The payload
+      { price, vatNumber, countryCode }, // The payload
     );
   }
 
@@ -190,14 +187,11 @@ class CheckoutComputeFinalPriceEvent extends AbstractWritableEvent {
 
 // ...
 
-const computeFinalPriceEvent = new CheckoutComputeFinalPriceEvent(
-  42, 'FR01000000158', 'FR'
-)
+const computeFinalPriceEvent = new CheckoutComputeFinalPriceEvent(42, 'FR01000000158', 'FR');
 
 console.log(computeFinalPriceEvent.getPrice()); // 42
 computeFinalPriceEvent.setPrice(38);
 console.log(computeFinalPriceEvent.getPrice()); // 38
-
 ```
 
 ### Events
