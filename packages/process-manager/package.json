@@ -1,6 +1,6 @@
 {
   "name": "alliage-process-manager",
-  "version": "1.1.1",
+  "version": "1.2.0-pre1",
   "description": "Process manager module for Alliage",
   "main": "dist/index.js",
   "scripts": {
@@ -27,9 +27,9 @@
   },
   "peerDependencies": {
     "alliage": "~1.0.0",
-    "alliage-config-loader": "~1.1.1",
-    "alliage-di": "~1.1.1",
-    "alliage-lifecycle": "~1.1.1",
-    "alliage-service-loader": "~1.1.1"
+    "alliage-config-loader": "~1.2.0-pre1",
+    "alliage-di": "~1.2.0-pre1",
+    "alliage-lifecycle": "~1.2.0-pre1",
+    "alliage-service-loader": "~1.2.0-pre1"
   }
 }
